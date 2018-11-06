@@ -21,12 +21,11 @@ void updateModel(Msg msg) {
 Widget view(Msg msg) {
   if (msg==init()) {
     Widget mainWindow = createPanel();
-    Widget d = mainWindow.div();
-    d.add([Widget() {return d.h2().innerHTML("My first counter app in Rascal");}
-           ,Widget() {return d.button().innerHTML("+").eventm(click, inc(), update).style("background-color:green");} 
-           ,Widget() {return d.button().innerHTML("-").eventm(click, dec(), update);}
-          ]);
-    display = d.div();
+    Widget d = mainWindow.div()
+     ;d.h2().innerHTML("My first counter app in Rascal");
+     ;d.button().innerHTML("+").eventm(click, inc(), update).style("background-color:green")
+     ;d.button().innerHTML("-").eventm(click, dec(), update)
+     ;display = d.div();
     } 
   display.innerHTML("<model.count>");
   return display;
