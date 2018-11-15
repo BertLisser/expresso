@@ -60,9 +60,9 @@ public class SocketConnection {
         IMap envVars, IInteger portNumber, IString initPage, IInteger width, IInteger height, IEvaluatorContext eval) {
         PrintWriter out = eval.getStdOut();
         // String path = this.getClass().getResource(javaClass.getValue()).getPath();
-        String path = eval.getConfiguration().getRascalJavaClassPathProperty();
-        // out.println(path);
-        path+=":/Users/bertl/eclipse-else/javafx11";
+        // String path = eval.getConfiguration().getRascalJavaClassPathProperty();
+        String path = "";
+        path="/Users/bertl/GIT/espresso";
         try {
             // Build the arg array using the command and the command arguments passed in the arguments list
             List<String> args = new ArrayList<String>();
@@ -71,7 +71,7 @@ public class SocketConnection {
             args.add("/Users/bertl/javafx-sdk-11/lib");
             args.add("--add-modules=javafx.web");
             args.add("-cp");
-            args.add(path);
+            args.add(path+":"+path+"/bin");
             args.add(javaClass.getValue());
             args.add("" + portNumber.intValue());
             args.add(initPage.getValue());
@@ -85,6 +85,8 @@ public class SocketConnection {
                         throw RuntimeExceptionFactory.illegalArgument(arguments.get(n), null, null);
                 }
             }
+            ///for (int i=0;i<args.size();i++) {out.print(args.get(i));out.print(" ");}
+            // out.println();
             ProcessBuilder pb = new ProcessBuilder(args);
 
             // Built the environment var map using the envVars map
@@ -142,13 +144,15 @@ public class SocketConnection {
                 int oldsize = socket.getReceiveBufferSize();
                 socket.setReceiveBufferSize(oldsize * 4);
                 sockets.put(processCounter, socket);
-                Thread.sleep(sleep);
+                // Thread.sleep(sleep);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                in.readLine();
                 return processCounter;
             }
-            catch (IOException | InterruptedException e) {
+           catch (IOException | InterruptedException e) {
                 out.println(e.getMessage());
-            }       
-            return vf.integer(-1);
+           }       
+           return vf.integer(-1);
         }
         catch (IOException e) {
             throw RuntimeExceptionFactory.javaException(e, null, null);

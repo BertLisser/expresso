@@ -37,8 +37,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
     ];
  */
  data Widget
-     = widget(int process = -1, str id = "", str eventName="main", str val = "none"
-     ,Widget(list[Widget()]) add = widgetList
+     = widget(int process = -1, str id = "", str eventName="main", str val = "none", Widget _ = widgetVoid
+     ,Widget(Widget)  add = widgetWidget
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
      ,Widget() h1 = widgetVoid
@@ -53,7 +53,9 @@ alias Widget = tuple[int process, str id, str eventName, str val
      ,Widget() svg = widgetVoid
      ,Widget() rect = widgetVoid
      ,Widget() circle = widgetVoid
+     ,Widget() line = widgetVoid
      ,Widget() path = widgetVoid
+     ,Widget() foreignObject = widgetVoid
      ,Widget(str) class = widgetStr
      ,Widget(str) style = widgetStr
      ,Widget(str, str) attr = widgetStrStr
@@ -69,6 +71,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
      ,Widget(str , Msg , void(Msg)) eventm = widgetEvent1
      ,Widget(str , Msg(str) , void(Msg)) eventf = widgetEvent2
      );
+     
+ alias Table = tuple[Widget table, list[Widget] tr, list[list[Widget]] td];
       
  private Widget newWidget(Widget p,  str id) {
     return newWidget(p, id, p.eventName);
@@ -91,7 +95,9 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.svg = Widget() {return xml(_r, "svg");};
     _r.rect = Widget() {return xml(_r, "rect");};
     _r.circle = Widget() {return xml(_r, "circle");};
+    _r.line = Widget() {return xml(_r, "line");};
     _r.path = Widget() {return xml(_r, "path");};
+    _r.foreignObject = Widget() {return xml(_r, "foreignObject");};
     _r.class = class(_r);
     _r.style = style(_r);
     _r.attr = attr(_r);
@@ -109,9 +115,9 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     return _r;
     }
     
-private Widget(list[Widget()]) add(Widget p) {
-   return Widget(list[Widget()] ws) {
-        for (Widget() w<-ws) w();
+private Widget(Widget) add(Widget p) {
+   return Widget(Widget w) {
+        add(p, w);
         return p;
         };
     }
@@ -223,8 +229,8 @@ private Widget(str) innerHTML(Widget p) =
 
 public Widget defaultWidget = widget();
 
-Widget createRootWidget(int p, str result) {
-   return newWidget(widget(process=p, id=""), result);
+Widget createRootWidget(int p, str result, str rootName) {
+   return newWidget(widget(process=p, id=""), result, rootName);
 }
 
 Widget widgetVoid() {return defaultWidget;}
@@ -235,7 +241,7 @@ Widget widgetInt(int x) {return defaultWidget;}
 
 Widget widgetNum(num x) {return defaultWidget;}
 
-Widget widgetList(list[Widget()] x) {return defaultWidget;}
+Widget widgetWidget(Widget x) {return defaultWidget;}
 
 Widget widgetStrStr(str x, str y) {return defaultWidget;}
 
@@ -247,13 +253,16 @@ Widget widgetEvent1(str x, Msg y, void(Msg) z) {return defaultWidget;}
 
 Widget widgetEvent2(str x, Msg(str) y, void(Msg) z) {return defaultWidget;}
 
-public Widget createPanel(str initPage="MainPanel", int portNumber= 8002
+public Widget createPanel(str initPage="MainPanel.html", int portNumber= 8002
                          ,int width = 800, int height = 800) {
-    int p = openSocketConnection("javafx11.MainPanel", initPage = initPage, portNumber = portNumber
+    int p = openSocketConnection("espresso.MainPanel", initPage = initPage, portNumber = portNumber
     ,width = width, height = height); 
     setPrecision(3);
     str result = exchange(p, "root", [],sep);
-    Widget r =  createRootWidget(p, result);
+    Widget r =  createRootWidget(p, result, result);
+    r._ =  r.div()
+       // .style("visibility:hidden")
+    ;
     width0 = width; height0 = height;
     return r;
     }
@@ -266,6 +275,7 @@ public Widget createSvgPanel() {
     
 public Widget select(Widget p, str id) {
     }
+    
 str sep = ";:";
     
 private Widget xml(Widget p, str tg) = newWidget(p, exchange(p.process, tg, [p.id], sep));
@@ -301,6 +311,8 @@ public Widget button(Widget p) {
     Widget r = newWidget(p, result);
     return r;
     }
+    
+public Widget addStylesheet(Widget p, str content) = newWidget(p, exchange(p.process, "addStylesheet", [p.id, content], sep)); 
     
 public Widget setInterval(Widget p, int interval) = newWidget(p, exchange(p.process, "setInterval", [p.id, "<interval>"], sep)); 
 
@@ -346,6 +358,8 @@ public Widget defs(Widget p) = newWidget(p, exchange(p.process, "defs", [p.id], 
 public Widget marker(Widget p) = newWidget(p, exchange(p.process, "marker", [p.id], sep));
 
 public Widget removechilds(Widget p) = newWidget(p, exchange(p.process, "removechilds", [p.id], sep));
+
+public Widget createRoot(Widget p) = newWidget(p, exchange(p.process, "createRoot", [], sep));
     
 public Widget attribute(Widget p, str key, str val) { 
     exchange(p.process, "attribute", [p.id, key, val], sep);
@@ -506,6 +520,56 @@ public java void closeSocketConnection(int processId, bool force);
    
 public void window(Widget z, str html) {
       z.div().class("window").div().class("line").innerHTML(html);  
+      }
+ 
+    
+ public Widget add(Widget p, Widget c) {     
+    str result = exchange(p.process, "add", [p.id, c.id],sep);
+    return p;
+    }
+      
+public Table hcat(Widget p, list[Widget] ws) {
+      Widget r = p.table();
+      Widget tr = r.tr();
+      list[Widget] tds = [];
+      for (Widget w<-ws) {
+         Widget td = tr.td();
+         add(td,w);
+         tds+=td;
+         }
+      return <r, [tr], [tds]>;
+      }
+      
+public Table vcat(Widget p, list[Widget] ws) {
+      Widget r = p.table();
+      list[Widget] trs = [];
+      list[list[Widget]] tds = [];
+      for (Widget w<-ws) {
+         Widget tr = r.tr();
+         Widget td = tr().td();
+         add(td, w);
+         trs+=tr;
+         tds+=[td];
+         }
+      return <r, trs, tds>;
+      }
+      
+  public Table table(Widget p, list[list[Widget]] ts) {
+      Widget r = p.table();
+      list[Widget] trs = [];
+      list[list[Widget]] rows = [];
+      for (list[Widget] ws<-ts) {
+         list[Widget] tds = [];
+         Widget tr = r.tr();
+         for (Widget w <- ws) {
+            Widget td = tr.td();
+            add(td, w);
+            tds+=td;
+            }
+         trs+=tr;
+         rows+=[tds];
+         }
+      return <r, trs, rows>;
       }
 
 
