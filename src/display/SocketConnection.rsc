@@ -72,7 +72,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
      ,Widget(str , Msg(str) , void(Msg)) eventf = widgetEvent2
      );
      
- alias Table = tuple[Widget table, list[Widget] tr, list[list[Widget]] td];
+ alias Grid = tuple[Widget table, list[Widget] tr, list[list[Widget]] td];
       
  private Widget newWidget(Widget p,  str id) {
     return newWidget(p, id, p.eventName);
@@ -369,14 +369,39 @@ public Widget attribute(Widget p, str key, str val) {
     // return p;
     }
     
+ public Widget attributeChild(Widget p, str key, str val, int i) { 
+    exchange(p.process, "attributeChild", [p.id, key, val, "<i>"], sep);
+    //  WHY ????
+    Widget r = newWidget(p, p.id);
+    return r;
+    // return p;
+    }
+    
 public str attribute(Widget p, str attr) {
     // println("attribute:<p.id> <attr>");
     return exchange(p.process, "attribute", [p.id, attr], sep);
     }
     
-public str style(Widget p, str attr) {
+public str attributeChild(Widget p, str attr, int i) {
+    // println("attribute:<p.id> <attr>");
+    return exchange(p.process, "attributeChild", [p.id, attr, "<i>"], sep);
+    }
+    
+public Widget style(Widget p, str attr) {
+    // println("attribute:<p.id> <attr>");
+    // return exchange(p.process, "style", [p.id, attr], sep);
+    return attribute(p, "style", attr);
+    }
+    
+public str getStyle(Widget p, str attr) {
     // println("attribute:<p.id> <attr>");
     return exchange(p.process, "style", [p.id, attr], sep);
+    }
+    
+public Widget styleChild(Widget p, str attr, int i) {
+    // println("attribute:<p.id> <attr>");
+    // return exchange(p.process, "style", [p.id, attr], sep);
+    return attributeChild(p, "style", attr, i);
     }
     
  public Widget property(Widget p, str key, str val) { 
@@ -428,7 +453,7 @@ public Widget waitForUser(Widget p) {
     return z;
     }
     
-public map[str, str] style(Widget p) {
+public map[str, str] getStyle(Widget p) {
    str s = attribute(p, "style");
    list[str] styles = split(";", s);
    map[str, str] r = (styl[0]: styl[1]|str x<-styles, list[str] styl:=split(":", x));
@@ -493,7 +518,6 @@ public java void closeSocketConnection(int processId, bool force);
         } 
      }  
  
-     
  public void eventLoop(Widget z, lrel[set[tuple[str id , str eventName]], void()] events1) {
       while (true) {
         Widget s = waitForUser(z);
@@ -528,7 +552,7 @@ public void window(Widget z, str html) {
     return p;
     }
       
-public Table hcat(Widget p, list[Widget] ws) {
+public Grid hcat(Widget p, list[Widget] ws) {
       Widget r = p.table();
       Widget tr = r.tr();
       list[Widget] tds = [];
@@ -540,7 +564,7 @@ public Table hcat(Widget p, list[Widget] ws) {
       return <r, [tr], [tds]>;
       }
       
-public Table vcat(Widget p, list[Widget] ws) {
+public Grid vcat(Widget p, list[Widget] ws) {
       Widget r = p.table();
       list[Widget] trs = [];
       list[list[Widget]] tds = [];
@@ -554,7 +578,7 @@ public Table vcat(Widget p, list[Widget] ws) {
       return <r, trs, tds>;
       }
       
-  public Table table(Widget p, list[list[Widget]] ts) {
+  public Grid grid(Widget p, list[list[Widget]] ts) {
       Widget r = p.table();
       list[Widget] trs = [];
       list[list[Widget]] rows = [];
