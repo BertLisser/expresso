@@ -13,13 +13,26 @@ data Msg = init();
 
 int width0 = 800;
 int height0 = 800;
-alias Align = tuple[num fx, num fy];
+alias Margin = tuple[num fx, num fy];
+
+alias Align = str;
+
+public Align leftBottom = "leftBottom";
+public Align centerBottom = "centerBottom";
+public Align rightBottom = "rightBottom";
+public Align leftCenter = "leftCenter";
+public Align center = "center";
+public Align rightCenter = "rightCenter";
+public Align leftTop = "leftTop";
+public Align centerTop = "centerTop";
+public Align rightTop = "rightTop";
+
 
 alias Bounds = tuple[num x, num y, num width, num height];
 alias BoundsC = tuple[num cx, num cy, num width, num height];
 
-BoundsC center(Bounds b, Align a) = <b.x+b.width*a.fx, b.y+b.height*a.fy,b.width, b.height>;
-Bounds  bounds(BoundsC c, Align a) = <c.cx-c.width*a.fx, c.cy-c.height*a.fy, c.width, c.height>;
+BoundsC center(Bounds b, Margin a) = <b.x+b.width*a.fx, b.y+b.height*a.fy,b.width, b.height>;
+Bounds  bounds(BoundsC c, Margin a) = <c.cx-c.width*a.fx, c.cy-c.height*a.fy, c.width, c.height>;
 
 map[int, lrel[set[tuple[str id , str eventName]], void()]] events = ();
 
@@ -37,7 +50,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
     ];
  */
  data Widget
-     = widget(int process = -1, str id = "", str eventName="main", str val = "none", Widget _ = widgetVoid
+     = widget(int process = -1, str id = "", str eventName="main", str val = "none", int lineWidth = 0,
+      num hshrink=1, num vshrink=1
      ,Widget(Widget)  add = widgetWidget
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
@@ -73,6 +87,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
      );
      
  alias Grid = tuple[Widget table, list[Widget] tr, list[list[Widget]] td];
+ 
+ alias Overlay = tuple[Widget overlay, list[Widget] array];
       
  private Widget newWidget(Widget p,  str id) {
     return newWidget(p, id, p.eventName);
@@ -128,7 +144,7 @@ private Widget(str, str) attr(Widget p) {
         };
     }
     
-private Widget(str) style(Widget p) {
+public Widget(str) style(Widget p) {
    return Widget(str val) {
         return attribute(p, "style", val); 
         };
@@ -260,7 +276,7 @@ public Widget createPanel(str initPage="MainPanel.html", int portNumber= 8002
     setPrecision(3);
     str result = exchange(p, "root", [],sep);
     Widget r =  createRootWidget(p, result, result);
-    r._ =  r.div()
+    // r._ =  r.div()
        // .style("visibility:hidden")
     ;
     width0 = width; height0 = height;
@@ -534,7 +550,7 @@ public java void closeSocketConnection(int processId, bool force);
         } 
      }
   
- public Widget grow(Widget src, Widget tgt, num f, Align align) {   
+ public Widget grow(Widget src, Widget tgt, num f, Margin align) {   
     Bounds b = getBBox(src);
     BoundsC c = center(b, align);
     c.width *= f; c.height *= f;
@@ -578,6 +594,21 @@ public Grid vcat(Widget p, list[Widget] ws) {
       return <r, trs, tds>;
       }
       
+ public Overlay overlay(Widget p, list[Widget] ws) {
+      Widget r = p.div().style("position:absolute;width:400px;height:400px");
+      list[Widget] array = [];
+      for (Widget w<-ws) {
+         int vprocent  = round(w.vshrink*100);
+         int hprocent  = round(w.hshrink*100);
+         Widget div = r.table().class("overlay").tr().td();
+         add(div, w);
+         // w.attr("width","<hprocent>%");w.attr("height","<vprocent>%");
+         // w.attr("viewBox", "0 0 100 100");
+         array+=div;
+         }
+      return <r, array>;
+      }
+      
   public Grid grid(Widget p, list[list[Widget]] ts) {
       Widget r = p.table();
       list[Widget] trs = [];
@@ -596,4 +627,20 @@ public Grid vcat(Widget p, list[Widget] ws) {
       return <r, trs, rows>;
       }
 
-
+public Widget setAlign(Widget p, Align align) {
+    tuple[str, str] r = <"", "">; 
+    switch(align) {
+      case leftBottom: r = <"margin-right:auto;margin-left:0", "vertical-align:bottom">;
+      case centerBottom: r = <"margin:auto", "vertical-align:bottom">;
+      case rightBottom: r = <"margin-left:auto;margin-right:0", "vertical-align:bottom">;
+      case leftCenter: r = <"margin-right:auto;margin-left:0", "vertical-align:center">;
+      case center: r = <"margin:auto", "vertical-align:center">;
+      case rightCenter: r = <"margin-left:auto;margin-right:0", "vertical-align:center">;
+      case leftTop: r = <"margin-right:auto;margin-left:0", "vertical-align:top">;
+      case centerTop: r = <"margin:auto", "vertical-align:top">;
+      case rightTop: r = <"margin-left:auto;margin-right:0", "vertical-align:top">;
+    }
+    p.style(r[1]);
+    styleChild(p, r[0], 0);
+    return p;
+    }
