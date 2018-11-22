@@ -609,6 +609,43 @@ public Grid vcat(Widget p, list[Widget] ws) {
       return <r, array>;
       }
       
+ Widget box(Widget w, str style="", num shrink=1, num vshrink=1, num hshrink=1, int lineWidth=0,
+    Widget inner = defaultWidget, Align align = center) {
+    if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
+    int vprocent  = round(vshrink*100);
+    int hprocent  = round(hshrink*100);
+    Widget r = w.svg().attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
+    .attr("viewBox", "0 0 100 100")
+    ;
+    r.hshrink = hshrink; r.vshrink = vshrink;
+    r.rect()
+       // .attr("vector-effect","non-scaling-stroke")
+       .attr("width", "100"). 
+    attr("height", "100").style(style).attr("stroke-width","<lineWidth>")
+    ;
+    if (inner!=defaultWidget) {
+         int vprocent1  = round(inner.vshrink*100);
+         int hprocent1  = round(inner.hshrink*100);
+         Widget html = r.foreignObject().attr("width", "100").attr("height","100")
+         .style("position:absolute")
+           .table()
+             // .style("padding:<lineWidth*shrink>px") 
+//.style("padding-top:<lineWidth*vshrink>px
+//         ';padding-bottom:<lineWidth*vshrink>px
+ //        ';padding-left:<lineWidth*hshrink>px
+//         ';padding-right:<lineWidth*hshrink>px"
+ //         )  
+           .attr("width", "100%")
+           .attr("height","100%")
+           .tr().td()   
+           ;
+         add(html, inner); 
+         inner.width(hprocent1); inner.height(vprocent1);
+         setAlign(html,align);          
+         }
+    return r;
+    }
+      
   public Grid grid(Widget p, list[list[Widget]] ts) {
       Widget r = p.table();
       list[Widget] trs = [];
