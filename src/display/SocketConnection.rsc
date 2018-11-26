@@ -51,7 +51,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
  */
  data Widget
      = widget(int process = -1, str id = "", str eventName="main", str val = "none", int lineWidth = 0,
-      num hshrink=1, num vshrink=1
+      num hshrink=1, num vshrink=1, Widget inner = defaultWidget
      ,Widget(Widget)  add = widgetWidget
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
@@ -385,6 +385,11 @@ public Widget attribute(Widget p, str key, str val) {
     // return p;
     }
     
+public str attribute(Widget p, str attr) {
+    // println("attribute:<p.id> <attr>");
+    return exchange(p.process, "attribute", [p.id, attr], sep);
+    }
+    
  public Widget attributeChild(Widget p, str key, str val, int i) { 
     exchange(p.process, "attributeChild", [p.id, key, val, "<i>"], sep);
     //  WHY ????
@@ -393,14 +398,20 @@ public Widget attribute(Widget p, str key, str val) {
     // return p;
     }
     
-public str attribute(Widget p, str attr) {
-    // println("attribute:<p.id> <attr>");
-    return exchange(p.process, "attribute", [p.id, attr], sep);
-    }
-    
-public str attributeChild(Widget p, str attr, int i) {
+ public str attributeChild(Widget p, str attr, int i) {
     // println("attribute:<p.id> <attr>");
     return exchange(p.process, "attributeChild", [p.id, attr, "<i>"], sep);
+    }
+    
+ public Widget attributeParent(Widget p, str key, str val) { 
+    exchange(p.process, "attributeParent", [p.id, key, val], sep);
+    Widget r = newWidget(p, p.id);
+    return r;
+    }
+    
+ public str attributeParent(Widget p, str attr) {
+    // println("attribute:<p.id> <attr>");
+    return exchange(p.process, "attributeParent", [p.id, attr], sep);
     }
     
 public Widget style(Widget p, str attr) {
@@ -586,10 +597,10 @@ public Grid vcat(Widget p, list[Widget] ws) {
       list[list[Widget]] tds = [];
       for (Widget w<-ws) {
          Widget tr = r.tr();
-         Widget td = tr().td();
+         Widget td = tr.td();
          add(td, w);
          trs+=tr;
-         tds+=[td];
+         tds+=[[td]];
          }
       return <r, trs, tds>;
       }
@@ -617,31 +628,27 @@ public Grid vcat(Widget p, list[Widget] ws) {
     Widget r = w.svg().attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
     .attr("viewBox", "0 0 100 100")
     ;
-    r.hshrink = hshrink; r.vshrink = vshrink;
+    r.hshrink = hshrink; r.vshrink = vshrink;r.lineWidth = lineWidth;
+    r.inner = inner;
     r.rect()
        // .attr("vector-effect","non-scaling-stroke")
        .attr("width", "100"). 
-    attr("height", "100").style(style).attr("stroke-width","<lineWidth>")
+    attr("height", "100").style(style).attr("stroke-width","<round(lineWidth)>")
     ;
     if (inner!=defaultWidget) {
-         int vprocent1  = round(inner.vshrink*100);
-         int hprocent1  = round(inner.hshrink*100);
-         Widget html = r.foreignObject().attr("width", "100").attr("height","100")
-         .style("position:absolute")
-           .table()
-             // .style("padding:<lineWidth*shrink>px") 
-//.style("padding-top:<lineWidth*vshrink>px
-//         ';padding-bottom:<lineWidth*vshrink>px
- //        ';padding-left:<lineWidth*hshrink>px
-//         ';padding-right:<lineWidth*hshrink>px"
- //         )  
-           .attr("width", "100%")
-           .attr("height","100%")
-           .tr().td()   
-           ;
-         add(html, inner); 
+         int vprocent1  = round(inner.vshrink*(100-lineWidth));
+         int hprocent1  = round(inner.hshrink*(100-lineWidth));
+         Widget fo = r.foreignObject();
+         Widget html = fo.table().attr("width", "100%").attr("height","100%").tr().td();
+         add(html, inner);
+         Widget w = r;
+         num lwx = lineWidth*hshrink; num lwy = lineWidth*vshrink;
+         attributeChild(w, "width", "<round(100-(lwx+lineWidth*inner.hshrink))>", 1);
+         attributeChild(w, "height","<round(100-(lwy+lineWidth*inner.vshrink))>", 1);
+         attributeChild(w, "x", "<round(lwx)>", 1);
+         attributeChild(w, "y", "<round(lwy)>", 1);
          inner.width(hprocent1); inner.height(vprocent1);
-         setAlign(html,align);          
+         setAlign(html,align);       
          }
     return r;
     }
