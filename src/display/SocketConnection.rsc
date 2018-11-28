@@ -51,7 +51,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
  */
  data Widget
      = widget(int process = -1, str id = "", str eventName="main", str val = "none", int lineWidth = 0,
-      num hshrink=1, num vshrink=1, Widget inner = defaultWidget
+      num hshrink=1, num vshrink=1, Widget inner = defaultWidget, Align align = "center"
      ,Widget(Widget)  add = widgetWidget
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
@@ -579,40 +579,81 @@ public void window(Widget z, str html) {
     return p;
     }
       
-public Grid hcat(Widget p, list[Widget] ws) {
+public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hshrink=1, Align align = center) {
       Widget r = p.table();
+      r.align = align;
+      int vprocent  = round(vshrink*100);
+      int hprocent  = round(hshrink*100);    
+      r.style("width:<hprocent>%;height:<vprocent>%");
       Widget tr = r.tr();
       list[Widget] tds = [];
       for (Widget w<-ws) {
          Widget td = tr.td();
          add(td,w);
+         // w.style("width:100%;height:100%");
+         setAlign(td,w.align);  
          tds+=td;
          }
       return <r, [tr], [tds]>;
       }
       
-public Grid vcat(Widget p, list[Widget] ws) {
+public Grid hcat(Widget p, int n) {
       Widget r = p.table();
+      // r.style("width:100%;height:100%");
+      Widget tr = r.tr();
+      list[Widget] tds = [];
+      for (int i<-[0..n]) {
+         Widget td = tr.td(); 
+         tds+=td;
+         }
+      return <r, [tr], [tds]>;
+      }
+      
+public Grid vcat(Widget p, list[Widget] ws, num hshrink=1, num vshrink=1, num shrink = 1, Align align = center) {
+if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
+      Widget r = p.table();
+      r.align = align;
+      int vprocent  = round(vshrink*100);
+      int hprocent  = round(hshrink*100);    
+      r.style("width:<hprocent>%;height:<vprocent>%");
       list[Widget] trs = [];
       list[list[Widget]] tds = [];
       for (Widget w<-ws) {
          Widget tr = r.tr();
          Widget td = tr.td();
          add(td, w);
+         // w.style("width:100%;height:100%");
+         setAlign(td,w.align);  
          trs+=tr;
          tds+=[[td]];
          }
       return <r, trs, tds>;
       }
       
- public Overlay overlay(Widget p, list[Widget] ws) {
+public Grid vcat(Widget p, int n) {
+      Widget r = p.table();
+      // r.style("width:100%;height:100%");
+      list[Widget] trs = [];
+      list[list[Widget]] tds = [];
+      for (int i<-[0..n]) {
+         Widget tr = r.tr();
+         Widget td = tr.td();
+         trs+=tr;
+         tds+=[[td]];
+         }
+      return <r, trs, tds>;
+      }
+      
+ public Overlay overlay(Widget p, list[Widget] ws, Align align = center) {
       Widget r = p.div().style("position:absolute;width:400px;height:400px");
+      r.align = align;
       list[Widget] array = [];
       for (Widget w<-ws) {
          int vprocent  = round(w.vshrink*100);
          int hprocent  = round(w.hshrink*100);
          Widget div = r.table().class("overlay").tr().td();
          add(div, w);
+         setAlign(div,w.align);   
          // w.attr("width","<hprocent>%");w.attr("height","<vprocent>%");
          // w.attr("viewBox", "0 0 100 100");
          array+=div;
@@ -629,7 +670,7 @@ public Grid vcat(Widget p, list[Widget] ws) {
     .attr("viewBox", "0 0 100 100")
     ;
     r.hshrink = hshrink; r.vshrink = vshrink;r.lineWidth = lineWidth;
-    r.inner = inner;
+    r.inner = inner; r.align = align;
     r.rect()
        // .attr("vector-effect","non-scaling-stroke")
        .attr("width", "100"). 
@@ -643,18 +684,23 @@ public Grid vcat(Widget p, list[Widget] ws) {
          add(html, inner);
          Widget w = r;
          num lwx = lineWidth*hshrink; num lwy = lineWidth*vshrink;
-         attributeChild(w, "width", "<round(100-(lwx+lineWidth*inner.hshrink))>", 1);
-         attributeChild(w, "height","<round(100-(lwy+lineWidth*inner.vshrink))>", 1);
+         attributeChild(w, "width", "<round(100-(2*lwx))>", 1);
+         attributeChild(w, "height","<round(100-(2*lwy))>", 1);
          attributeChild(w, "x", "<round(lwx)>", 1);
          attributeChild(w, "y", "<round(lwy)>", 1);
          inner.width(hprocent1); inner.height(vprocent1);
-         setAlign(html,align);       
+         setAlign(html,inner.align);       
          }
     return r;
     }
       
-  public Grid grid(Widget p, list[list[Widget]] ts) {
+  public Grid grid(Widget p, list[list[Widget]] ts
+      , num shrink=1, num vshrink=1, num hshrink=1, str align = center) {
       Widget r = p.table();
+      r.align  = align;
+      int vprocent  = round(vshrink*100);
+      int hprocent  = round(hshrink*100);    
+      r.style("width:<hprocent>%;height:<vprocent>%");
       list[Widget] trs = [];
       list[list[Widget]] rows = [];
       for (list[Widget] ws<-ts) {
@@ -663,6 +709,8 @@ public Grid vcat(Widget p, list[Widget] ws) {
          for (Widget w <- ws) {
             Widget td = tr.td();
             add(td, w);
+            // w.style("width:100%;height:100%");
+            setAlign(td,w.align);   
             tds+=td;
             }
          trs+=tr;
