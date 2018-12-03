@@ -51,7 +51,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
  */
  data Widget
      = widget(int process = -1, str id = "", str eventName="main", str val = "none", int lineWidth = 0,
-      num hshrink=1, num vshrink=1, Widget inner = defaultWidget, Align align = "center"
+      num hshrink=1, num vshrink=1, Align align = "center", bool isSvg = false
      ,Widget(Widget)  add = widgetWidget
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
@@ -80,7 +80,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
      ,Widget(num) cx = widgetNum
      ,Widget(num) cy = widgetNum
      ,Widget(num) r = widgetNum
-     ,Widget(str) innerHTML = widgetStr
+     ,Widget(str) innerHTML =widgetStr
      ,Widget(str ,  void(value)) event  = widgetStrFun
      ,Widget(str , Msg , void(Msg)) eventm = widgetEvent1
      ,Widget(str , Msg(str) , void(Msg)) eventf = widgetEvent2
@@ -95,8 +95,10 @@ alias Widget = tuple[int process, str id, str eventName, str val
     }
     
 private Widget newWidget(Widget p,  str id, str eventName) {
-    Widget _r =  widget(process=p.process, id=id, eventName=eventName);
-     _r.add = add(_r);
+    Widget _r =  widget(process=p.process, id=id, eventName=eventName, isSvg = p.isSvg
+     , lineWidth=p.lineWidth, vshrink =p.vshrink, hshrink = p.hshrink, align = p.align
+    );
+    
      _r.div = Widget() {return xml(_r, "div");};
     _r.span = Widget() {return xml(_r, "span");};
     _r.h1 = Widget() {return xml(_r, "h1");};
@@ -108,12 +110,12 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.td = Widget() {return xml(_r, "td");};
     _r.button = Widget() {return xml(_r, "button");};
     _r.input = Widget() {return xml(_r, "input");};
-    _r.svg = Widget() {return xml(_r, "svg");};
+    _r.svg = Widget() {_r.isSvg=true; Widget w = xml(_r, "svg");return w;};
     _r.rect = Widget() {return xml(_r, "rect");};
     _r.circle = Widget() {return xml(_r, "circle");};
     _r.line = Widget() {return xml(_r, "line");};
     _r.path = Widget() {return xml(_r, "path");};
-    _r.foreignObject = Widget() {return xml(_r, "foreignObject");};
+    _r.foreignObject = Widget() {return foreignObject(_r);};
     _r.class = class(_r);
     _r.style = style(_r);
     _r.attr = attr(_r);
@@ -128,13 +130,13 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.event = event(_r);
     _r.eventm = eventm(_r);
     _r.eventf = eventf(_r);
+    _r.add = add(_r);
     return _r;
     }
     
 private Widget(Widget) add(Widget p) {
    return Widget(Widget w) {
-        add(p, w);
-        return p;
+        return add(p, w);
         };
     }
 
@@ -295,6 +297,11 @@ public Widget select(Widget p, str id) {
 str sep = ";:";
     
 private Widget xml(Widget p, str tg) = newWidget(p, exchange(p.process, tg, [p.id], sep));
+
+public Widget foreignObject(Widget p) {
+     str id = exchange(p.process, "foreignObject", [p.id], sep);
+     return newWidget(p, id);
+     }
     
 public Widget h1(Widget p) = newWidget(p, exchange(p.process, "h1", [p.id], sep));
 
@@ -319,6 +326,7 @@ public Widget span(Widget p) = newWidget(p, exchange(p.process, "span", [p.id], 
 public Widget svg(Widget p) {
     str result = exchange(p.process, "svg", [p.id], sep);
     Widget r = newWidget(p, result);
+    r.isSvg = true;
     return r;
     }
     
@@ -380,7 +388,9 @@ public Widget createRoot(Widget p) = newWidget(p, exchange(p.process, "createRoo
 public Widget attribute(Widget p, str key, str val) { 
     exchange(p.process, "attribute", [p.id, key, val], sep);
     //  WHY ????
+    // println("A: <p.isSvg>");
     Widget r = newWidget(p, p.id);
+    // println("B: <r.isSvg>");
     return r;
     // return p;
     }
@@ -472,10 +482,10 @@ public Widget innerHTML(Widget p, str text) {
     
 public Widget waitForUser(Widget p) {
     str s = exchange(p.process, p.eventName, [p.id], sep);
-    if (isEmpty(s)) return newWidget(p, "", "exit");
+    if (isEmpty(s)) return newWidget(p, "", "exit", p.svg);
     list[str] r = split(":", s);
     if (size(r)<2) return defaultWidget;
-    Widget z = newWidget(p, r[0], r[1]);
+    Widget z = newWidget(p, r[0], r[1], p.svg);
     if (size(r)==3) z.val = r[2];       
     return z;
     }
@@ -574,8 +584,31 @@ public void window(Widget z, str html) {
       }
  
     
- public Widget add(Widget p, Widget c) {     
-    str result = exchange(p.process, "add", [p.id, c.id],sep);
+ public Widget add(Widget p, Widget inner) { 
+    bool isSvg = p.isSvg;
+    if (inner!=defaultWidget && isSvg) {
+         Widget fo = p.foreignObject();
+         // println("foreignObject:<p.id> || <p.foreignObject()>");
+         Widget html = fo.table().attr("width", "100%").attr("height","100%").tr().td();
+         exchange(html.process, "add", [html.id, inner.id],sep); 
+         // exchange(html.process, "adjust", [html.id, inner.id],sep); 
+         int siz = 100-p.lineWidth;
+         int ofs = round(p.lineWidth/2);
+         println("stroke-width:"+attribute(p, "stroke-width"));
+         attributeChild(p, "width", "<siz>", -1);  
+         attributeChild(p, "height","<siz>", -1);
+         attributeChild(p, "x", "<ofs>", -1);
+         attributeChild(p, "y", "<ofs>", -1);  
+         int vprocent1  = round(inner.vshrink*(100-p.lineWidth));
+         int hprocent1  = round(inner.hshrink*(100-p.lineWidth));
+         println("width:"+attribute(inner, "width"));
+         println("height:"+attribute(inner, "height"));
+         inner.attr("width","<hprocent1>px");
+         inner.attr("height", "<vprocent1>px");
+         setAlign(html,inner.align);
+         return newWidget(inner, inner.id);       
+         } 
+    exchange(p.process, "add", [p.id, inner.id],sep); 
     return p;
     }
       
@@ -662,36 +695,22 @@ public Grid vcat(Widget p, int n) {
       }
       
  Widget box(Widget w, str style="", num shrink=1, num vshrink=1, num hshrink=1, int lineWidth=0,
-    Widget inner = defaultWidget, Align align = center) {
+    Align align = center) {
     if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
     int vprocent  = round(vshrink*100);
     int hprocent  = round(hshrink*100);
-    Widget r = w.svg().attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
-    .attr("viewBox", "0 0 100 100")
+    Widget r = w.svg()
+    .attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
+    .attr("viewBox", "0 0 100 100").attr("stroke-width","<round(lineWidth)>")
     ;
     r.hshrink = hshrink; r.vshrink = vshrink;r.lineWidth = lineWidth;
-    r.inner = inner; r.align = align;
+    r.align = align;
     r.rect()
        // .attr("vector-effect","non-scaling-stroke")
        .attr("width", "100"). 
-    attr("height", "100").style(style).attr("stroke-width","<round(lineWidth)>")
+    attr("height", "100").style(style).attr("stroke-width","inherit")
     ;
-    if (inner!=defaultWidget) {
-         int vprocent1  = round(inner.vshrink*(100-lineWidth));
-         int hprocent1  = round(inner.hshrink*(100-lineWidth));
-         Widget fo = r.foreignObject();
-         Widget html = fo.table().attr("width", "100%").attr("height","100%").tr().td();
-         add(html, inner);
-         Widget w = r;
-         num lwx = lineWidth*hshrink; num lwy = lineWidth*vshrink;
-         attributeChild(w, "width", "<round(100-(2*lwx))>", 1);
-         attributeChild(w, "height","<round(100-(2*lwy))>", 1);
-         attributeChild(w, "x", "<round(lwx)>", 1);
-         attributeChild(w, "y", "<round(lwy)>", 1);
-         inner.width(hprocent1); inner.height(vprocent1);
-         setAlign(html,inner.align);       
-         }
-    return r;
+    return newWidget(r, r.id);
     }
       
   public Grid grid(Widget p, list[list[Widget]] ts

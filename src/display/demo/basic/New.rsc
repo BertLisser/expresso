@@ -17,14 +17,15 @@ import util::Math;
     }
  */
 
-  
+ /*
  public void main() {
     Widget _ = createPanel();
     addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
     Overlay v = overlay(_, [box(_, style="fill:red;stroke:yellow", lineWidth=16, shrink = 0.5, align = leftTop )
                            ,box(_, style="fill:green;stroke:yellow", shrink=0.5, lineWidth=16
                            , inner=box(_,style="fill:gray;stroke:blue", lineWidth=16,  vshrink=0.5, hshrink=0.7
-                               , inner = box(_, style="fill:antiquewhite;stroke:brown", shrink=0.5, lineWidth=16, align = rightBottom)
+                               , inner = box(_, style="fill:antiquewhite;stroke:brown", shrink=0.7, 
+                                              lineWidth=16, align = leftTop)
                                , align = leftBottom
                                ), 
                            align = rightBottom)    
@@ -32,6 +33,17 @@ import util::Math;
                           ]);
                           
     v.overlay.style("border-color:black;border-width:2px;border-style:solid;width:400px;height:400px");
+    }
+  */
+    
+ public void main() {
+    Widget _ = createPanel();
+    addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
+    Widget w = box(_, style="fill:red;stroke:yellow", lineWidth=4, shrink=0.5).
+        add(box(_, style="fill:yellow;stroke:brown", lineWidth=8, shrink = 0.5, align=rightBottom))
+        .add(box(_, style="fill:yellow;stroke:green", lineWidth=16, shrink = 0.5, align=rightBottom))
+          .add(box(_, style="fill:yellow;stroke:blue", lineWidth=32, shrink = 0.5, align=rightBottom))
+        ;
     }
  
  /* 
