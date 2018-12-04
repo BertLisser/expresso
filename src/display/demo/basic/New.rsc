@@ -37,14 +37,47 @@ import util::Math;
   */
     
  public void main() {
+    int cx = 25, cy  =25, r = 10;
     Widget _ = createPanel();
     addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
-    Widget w = box(_, style="fill:red;stroke:yellow", lineWidth=4, shrink=0.5).
-        add(box(_, style="fill:yellow;stroke:brown", lineWidth=8, shrink = 0.5, align=rightBottom))
-        .add(box(_, style="fill:yellow;stroke:green", lineWidth=16, shrink = 0.5, align=rightBottom))
-          .add(box(_, style="fill:yellow;stroke:blue", lineWidth=32, shrink = 0.5, align=rightBottom))
+    Widget w = box(_ 
+                  ,_ .rect().width(100).height(100).style("fill:red;stroke:yellow").attr("stroke-width","inherit")
+                  , _.circle().cx(cx+2).cy(cy+2).r(r).style("fill:black")
+                  ,lineWidth=4, shrink=0.5)
+         .add(box(_ 
+                 ,_.rect().width(100).height(100). style("fill:yellow;stroke:brown")
+                 ,_.circle().cx(cx+4).cy(cy+4).r(r).style("fill:black") 
+                 ,lineWidth=8, hshrink = 0.5, vshrink = 0.5, align=rightBottom))
+         .add(box(_
+                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:green")
+                 ,_.circle().cx(cx+8).cy(cy+8).r(r).style("fill:black")
+                 ,lineWidth=16, shrink = 0.5, align=rightBottom))
+         .add(box(_   
+                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:blue")
+                 ,_.circle().cx(cx+16).cy(cy+16).r(r).style("fill:black")
+                 ,lineWidth=32, shrink = 0.5, align=rightBottom))
         ;
     }
+    
+ list[str] colors = ["antiquewhite", "beige", "brown", "cadetblue", "darksalmon", "deeppink", 
+                    "floralwhite", "forestgreen", "indianred", "lavender", "lightseagreen"];
+                    
+ public void palette() {
+      Widget _ = createPanel();
+      addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
+      num lw = 4;
+      Widget w = box(_, _.circle().cx(50+lw/2).cy(50+lw/2).r(50-lw).style(
+          "fill:white;stroke-width:inhirit;stroke:head(colors)") 
+                    lineWidth = floor(lw), shrink = 0.5);
+     for (str color <- tail(colors)) {
+          lw=lw/0.8;
+          w = w.add(
+          box(_, _.circle().cx(50+lw/2).cy(50+lw/2).r(50-lw).style(
+          "stroke-width:<lw>;stroke:<color>; fill:white") 
+                    lineWidth = floor(lw), shrink = 0.8));
+          }
+      }
+                    
  
  /* 
 public void main() {

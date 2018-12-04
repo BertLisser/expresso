@@ -50,8 +50,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
     ];
  */
  data Widget
-     = widget(int process = -1, str id = "", str eventName="main", str val = "none", int lineWidth = 0,
-      num hshrink=1, num vshrink=1, Align align = "center", bool isSvg = false
+     = widget(int process = -1, str id = "", str eventName="main", str val = "none"
+      , Align align = "center", bool isSvg = false
      ,Widget(Widget)  add = widgetWidget
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
@@ -96,7 +96,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
     
 private Widget newWidget(Widget p,  str id, str eventName) {
     Widget _r =  widget(process=p.process, id=id, eventName=eventName, isSvg = p.isSvg
-     , lineWidth=p.lineWidth, vshrink =p.vshrink, hshrink = p.hshrink, align = p.align
+     , align = p.align
     );
     
      _r.div = Widget() {return xml(_r, "div");};
@@ -110,7 +110,7 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.td = Widget() {return xml(_r, "td");};
     _r.button = Widget() {return xml(_r, "button");};
     _r.input = Widget() {return xml(_r, "input");};
-    _r.svg = Widget() {_r.isSvg=true; Widget w = xml(_r, "svg");return w;};
+    _r.svg = Widget() {_r.isSvg=true; Widget w = svg(_r, 1, 1, 0);return w;};
     _r.rect = Widget() {return xml(_r, "rect");};
     _r.circle = Widget() {return xml(_r, "circle");};
     _r.line = Widget() {return xml(_r, "line");};
@@ -285,9 +285,9 @@ public Widget createPanel(str initPage="MainPanel.html", int portNumber= 8002
     return r;
     }
     
-public Widget createSvgPanel() {
+public Widget createSvgPanel(num hshrink, num vshrink, int lineWidth) {
     Widget w = createPanel();
-    Widget s =   svg(w).width(width0).height(height0);
+    Widget s =   svg(w, hshrink, vshrink, lineWidth);
     return w;
     }
     
@@ -323,10 +323,13 @@ public Widget li(Widget p) = newWidget(p, exchange(p.process, "li", [p.id], sep)
 
 public Widget span(Widget p) = newWidget(p, exchange(p.process, "span", [p.id], sep));
     
-public Widget svg(Widget p) {
+public Widget svg(Widget p, num hshrink, num vshrink, int lineWidth) {
+    int hprocent  = round(hshrink*100);int vprocent  = round(vshrink*100);
     str result = exchange(p.process, "svg", [p.id], sep);
     Widget r = newWidget(p, result);
     r.isSvg = true;
+    r.attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
+    .attr("viewBox", "0 0 100 100").attr("stroke-width","<round(lineWidth)>");
     return r;
     }
     
@@ -585,26 +588,11 @@ public void window(Widget z, str html) {
  
     
  public Widget add(Widget p, Widget inner) { 
-    bool isSvg = p.isSvg;
-    if (inner!=defaultWidget && isSvg) {
+    if (inner!=defaultWidget && p.isSvg && inner.isSvg) {
          Widget fo = p.foreignObject();
-         // println("foreignObject:<p.id> || <p.foreignObject()>");
          Widget html = fo.table().attr("width", "100%").attr("height","100%").tr().td();
          exchange(html.process, "add", [html.id, inner.id],sep); 
-         // exchange(html.process, "adjust", [html.id, inner.id],sep); 
-         int siz = 100-p.lineWidth;
-         int ofs = round(p.lineWidth/2);
-         println("stroke-width:"+attribute(p, "stroke-width"));
-         attributeChild(p, "width", "<siz>", -1);  
-         attributeChild(p, "height","<siz>", -1);
-         attributeChild(p, "x", "<ofs>", -1);
-         attributeChild(p, "y", "<ofs>", -1);  
-         int vprocent1  = round(inner.vshrink*(100-p.lineWidth));
-         int hprocent1  = round(inner.hshrink*(100-p.lineWidth));
-         println("width:"+attribute(inner, "width"));
-         println("height:"+attribute(inner, "height"));
-         inner.attr("width","<hprocent1>px");
-         inner.attr("height", "<vprocent1>px");
+         exchange(html.process, "adjust", [p.id, inner.id],sep); 
          setAlign(html,inner.align);
          return newWidget(inner, inner.id);       
          } 
@@ -694,22 +682,12 @@ public Grid vcat(Widget p, int n) {
       return <r, array>;
       }
       
- Widget box(Widget w, str style="", num shrink=1, num vshrink=1, num hshrink=1, int lineWidth=0,
+ Widget box(Widget w, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, int lineWidth=0,
     Align align = center) {
     if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
-    int vprocent  = round(vshrink*100);
-    int hprocent  = round(hshrink*100);
-    Widget r = w.svg()
-    .attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
-    .attr("viewBox", "0 0 100 100").attr("stroke-width","<round(lineWidth)>")
-    ;
-    r.hshrink = hshrink; r.vshrink = vshrink;r.lineWidth = lineWidth;
+    Widget r = svg(w, hshrink, vshrink, lineWidth);
     r.align = align;
-    r.rect()
-       // .attr("vector-effect","non-scaling-stroke")
-       .attr("width", "100"). 
-    attr("height", "100").style(style).attr("stroke-width","inherit")
-    ;
+    for (Widget q<-ws) {add(r, q);}
     return newWidget(r, r.id);
     }
       
