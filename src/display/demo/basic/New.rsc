@@ -41,41 +41,73 @@ import util::Math;
     Widget _ = createPanel();
     addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
     Widget w = box(_ 
-                  ,_ .rect().width(100).height(100).style("fill:red;stroke:yellow").attr("stroke-width","inherit")
+                  ,_ .rect().width(100).height(100).style("fill:red;stroke:yellow").attr("stroke-width","8")
                   , _.circle().cx(cx+2).cy(cy+2).r(r).style("fill:black")
                   ,lineWidth=4, shrink=0.5)
          .add(box(_ 
-                 ,_.rect().width(100).height(100). style("fill:yellow;stroke:brown")
+                 ,_.rect().width(100).height(100). style("fill:yellow;stroke:brown").attr("stroke-width","16")
                  ,_.circle().cx(cx+4).cy(cy+4).r(r).style("fill:black") 
                  ,lineWidth=8, hshrink = 0.5, vshrink = 0.5, align=rightBottom))
          .add(box(_
-                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:green")
+                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:green").attr("stroke-width","32")
                  ,_.circle().cx(cx+8).cy(cy+8).r(r).style("fill:black")
                  ,lineWidth=16, shrink = 0.5, align=rightBottom))
          .add(box(_   
-                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:blue")
+                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:blue").attr("stroke-width","64")
                  ,_.circle().cx(cx+16).cy(cy+16).r(r).style("fill:black")
                  ,lineWidth=32, shrink = 0.5, align=rightBottom))
         ;
     }
     
- list[str] colors = ["antiquewhite", "beige", "brown", "cadetblue", "darksalmon", "deeppink", 
-                    "floralwhite", "forestgreen", "indianred", "lavender", "lightseagreen"];
-                    
- public void palette() {
-      Widget _ = createPanel();
-      addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
+ //list[str] colors = ["antiquewhite", "beige", "brown", "cadetblue", "darksalmon", "deeppink", 
+ //                   "floralwhite", "forestgreen", "indianred", "lavender", "lightseagreen"];
+ list[str] colors = ["darkmagenta", "darkolivegreen",  "darkkhaki", "darkorange",   
+            "darkorchid", "darkred", "darksalmon", "darkseagreen"];              
+ public Widget palettec(Widget p) {
+      // Widget _ = createPanel();
+      Widget _ = p;
       num lw = 4;
-      Widget w = box(_, _.circle().cx(50+lw/2).cy(50+lw/2).r(50-lw).style(
-          "fill:white;stroke-width:inhirit;stroke:head(colors)") 
-                    lineWidth = floor(lw), shrink = 0.5);
+      num shrink = 1.0;
+      Widget result = box(_, _.circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
+          "fill:none;stroke-width:inhirit;stroke:<head(colors)>") 
+                    ,lineWidth = round(lw, 0.001), shrink = 0.5).
+                    attr("width","200").attr("height","200")
+                    ;
+     Widget w = result;
      for (str color <- tail(colors)) {
-          lw=lw/0.8;
+          lw=lw/(shrink*((100-lw)/100));
           w = w.add(
-          box(_, _.circle().cx(50+lw/2).cy(50+lw/2).r(50-lw).style(
+          box(_, _.circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
+          "stroke-width:<round(lw)>;stroke:<color>; fill:none") 
+                    lineWidth = round(lw, 0.001), shrink = shrink));
+          // break;
+          } 
+      return result;
+      }
+      
+ public Widget paletter(Widget p) {
+      Widget _ = p;
+      num lw = 4;
+      num shrink = 1;
+      Widget result = box(_, _.rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2).style(
+          "fill:white;stroke-width:inhirit;stroke:<head(colors)>") 
+                    lineWidth = lw, shrink = 0.5).attr("width","200").attr("height","200");
+     Widget w = result;
+     for (str color <- tail(colors)) {
+          lw=lw/(shrink*((100-lw)/100));
+          w = w.add(
+          box(_, _.rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2).style(
           "stroke-width:<lw>;stroke:<color>; fill:white") 
-                    lineWidth = floor(lw), shrink = 0.8));
-          }
+                    lineWidth = lw, shrink = shrink));
+          // break;
+          } 
+      return result;
+      }
+      
+ void nesting() {
+      Widget _ = createPanel();
+      addStylesheet(_, "td{border: 4px ridge grey}");
+      vcat(_, [paletter(_), palettec(_)]);
       }
                     
  

@@ -323,7 +323,7 @@ public Widget li(Widget p) = newWidget(p, exchange(p.process, "li", [p.id], sep)
 
 public Widget span(Widget p) = newWidget(p, exchange(p.process, "span", [p.id], sep));
     
-public Widget svg(Widget p, num hshrink, num vshrink, int lineWidth) {
+public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth) {
     int hprocent  = round(hshrink*100);int vprocent  = round(vshrink*100);
     str result = exchange(p.process, "svg", [p.id], sep);
     Widget r = newWidget(p, result);
@@ -590,10 +590,12 @@ public void window(Widget z, str html) {
  public Widget add(Widget p, Widget inner) { 
     if (inner!=defaultWidget && p.isSvg && inner.isSvg) {
          Widget fo = p.foreignObject();
-         Widget html = fo.table().attr("width", "100%").attr("height","100%").tr().td();
+         Widget html = fo.table().attr("width","100%").attr("height","100%").
+         class("inner").tr().td().class("inner");
          exchange(html.process, "add", [html.id, inner.id],sep); 
          exchange(html.process, "adjust", [p.id, inner.id],sep); 
          setAlign(html,inner.align);
+        //  html.attr("height","100%"); // Problem. Must be 100%
          return newWidget(inner, inner.id);       
          } 
     exchange(p.process, "add", [p.id, inner.id],sep); 
@@ -682,7 +684,7 @@ public Grid vcat(Widget p, int n) {
       return <r, array>;
       }
       
- Widget box(Widget w, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, int lineWidth=0,
+ Widget box(Widget w, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, num lineWidth=0,
     Align align = center) {
     if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
     Widget r = svg(w, hshrink, vshrink, lineWidth);
