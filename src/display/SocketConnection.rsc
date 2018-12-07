@@ -52,7 +52,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
  data Widget
      = widget(int process = -1, str id = "", str eventName="main", str val = "none"
       , Align align = "center", bool isSvg = false
-     ,Widget(Widget)  add = widgetWidget
+     ,Widget(Widget, Align)  add = widgetWidgetAlign
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
      ,Widget() h1 = widgetVoid
@@ -134,9 +134,9 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     return _r;
     }
     
-private Widget(Widget) add(Widget p) {
-   return Widget(Widget w) {
-        return add(p, w);
+private Widget(Widget, Align) add(Widget p) {
+   return Widget(Widget w, Align align) {
+        return add(p, w, align);
         };
     }
 
@@ -259,7 +259,7 @@ Widget widgetInt(int x) {return defaultWidget;}
 
 Widget widgetNum(num x) {return defaultWidget;}
 
-Widget widgetWidget(Widget x) {return defaultWidget;}
+Widget widgetWidgetAlign(Widget x, Align align) {return defaultWidget;}
 
 Widget widgetStrStr(str x, str y) {return defaultWidget;}
 
@@ -271,6 +271,8 @@ Widget widgetEvent1(str x, Msg y, void(Msg) z) {return defaultWidget;}
 
 Widget widgetEvent2(str x, Msg(str) y, void(Msg) z) {return defaultWidget;}
 
+Widget scratch = defaultWidget;
+
 public Widget createPanel(str initPage="MainPanel.html", int portNumber= 8002
                          ,int width = 800, int height = 800) {
     int p = openSocketConnection("espresso.MainPanel", initPage = initPage, portNumber = portNumber
@@ -278,6 +280,7 @@ public Widget createPanel(str initPage="MainPanel.html", int portNumber= 8002
     setPrecision(3);
     str result = exchange(p, "root", [],sep);
     Widget r =  createRootWidget(p, result, result);
+    if (scratch==defaultWidget) scratch  = r;
     // r._ =  r.div()
        // .style("visibility:hidden")
     ;
@@ -349,11 +352,15 @@ public Widget input(Widget p) = newWidget(p, exchange(p.process, "input", [p.id]
     
 public Widget rect(Widget p) = newWidget(p, exchange(p.process, "rect", [p.id], sep));
 
+public Widget rect() = newWidget(scratch, exchange(scratch.process, "rect", [scratch.id], sep));
+
 public Widget line(Widget p) = newWidget(p, exchange(p.process, "line", [p.id], sep));
 
 public Widget ellipse(Widget p) = newWidget(p, exchange(p.process, "ellipse", [p.id], sep));
 
 public Widget circle(Widget p) = newWidget(p, exchange(p.process, "circle", [p.id], sep));
+
+public Widget circle() = newWidget(scratch, exchange(scratch.process, "circle", [scratch.id], sep));
 
 public Widget polygon(Widget p) = newWidget(p, exchange(p.process, "polygon", [p.id], sep));
 
@@ -587,18 +594,19 @@ public void window(Widget z, str html) {
       }
  
     
- public Widget add(Widget p, Widget inner) { 
+ public Widget add(Widget p, Widget inner, Align align) { 
     if (inner!=defaultWidget && p.isSvg && inner.isSvg) {
          Widget fo = p.foreignObject();
          Widget html = fo.table().attr("width","100%").attr("height","100%").
          class("inner").tr().td().class("inner");
          exchange(html.process, "add", [html.id, inner.id],sep); 
          exchange(html.process, "adjust", [p.id, inner.id],sep); 
-         setAlign(html,inner.align);
+         setAlign(html,align);
         //  html.attr("height","100%"); // Problem. Must be 100%
          return newWidget(inner, inner.id);       
          } 
     exchange(p.process, "add", [p.id, inner.id],sep); 
+    if (!p.isSvg) setAlign(p,align);
     return p;
     }
       
@@ -612,9 +620,7 @@ public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hsh
       list[Widget] tds = [];
       for (Widget w<-ws) {
          Widget td = tr.td();
-         add(td,w);
-         // w.style("width:100%;height:100%");
-         setAlign(td,w.align);  
+         add(td,w, w.align); 
          tds+=td;
          }
       return <r, [tr], [tds]>;
@@ -644,9 +650,7 @@ if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
       for (Widget w<-ws) {
          Widget tr = r.tr();
          Widget td = tr.td();
-         add(td, w);
-         // w.style("width:100%;height:100%");
-         setAlign(td,w.align);  
+         add(td, w, w.align);  
          trs+=tr;
          tds+=[[td]];
          }
@@ -672,13 +676,10 @@ public Grid vcat(Widget p, int n) {
       r.align = align;
       list[Widget] array = [];
       for (Widget w<-ws) {
-         int vprocent  = round(w.vshrink*100);
-         int hprocent  = round(w.hshrink*100);
-         Widget div = r.table().class("overlay").tr().td();
-         add(div, w);
-         setAlign(div,w.align);   
-         // w.attr("width","<hprocent>%");w.attr("height","<vprocent>%");
-         // w.attr("viewBox", "0 0 100 100");
+         //int vprocent  = round(w.vshrink*100);
+         //int hprocent  = round(w.hshrink*100);
+         Widget div = r.table().class("overlay").tr().td().class("inner");
+         add(div, w, w.align);
          array+=div;
          }
       return <r, array>;
@@ -689,9 +690,15 @@ public Grid vcat(Widget p, int n) {
     if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
     Widget r = svg(w, hshrink, vshrink, lineWidth);
     r.align = align;
-    for (Widget q<-ws) {add(r, q);}
+    for (Widget q<-ws) {add(r, q, q.align);}
     return newWidget(r, r.id);
     }
+ 
+ Widget box(Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, num lineWidth=0,
+    Align align = center) {  
+        return box(scratch, ws,   style,  shrink, vshrink, hshrink, lineWidth, align);
+    }
+ 
       
   public Grid grid(Widget p, list[list[Widget]] ts
       , num shrink=1, num vshrink=1, num hshrink=1, str align = center) {
@@ -707,9 +714,9 @@ public Grid vcat(Widget p, int n) {
          Widget tr = r.tr();
          for (Widget w <- ws) {
             Widget td = tr.td();
-            add(td, w);
+            add(td, w, w.align);
             // w.style("width:100%;height:100%");
-            setAlign(td,w.align);   
+            // setAlign(td,w.align);   
             tds+=td;
             }
          trs+=tr;
