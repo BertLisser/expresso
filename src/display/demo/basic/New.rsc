@@ -34,22 +34,22 @@ import util::Math;
     int cx = 25, cy  =25, r = 10;
     Widget _ = createPanel();
     addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
-    Widget w = box(_ 
-                  ,_.rect().width(100).height(100).style("fill:red;stroke:yellow").attr("stroke-width","8")
-                  ,_.circle().cx(cx+2).cy(cy+2).r(r).style("fill:black")
-                  ,lineWidth=4, shrink=0.5)
-         .add(box(_ 
-                 ,_.rect().width(100).height(100). style("fill:yellow;stroke:brown").attr("stroke-width","16")
-                 ,_.circle().cx(cx+4).cy(cy+4).r(r).style("fill:black") 
-                 ,lineWidth=8, hshrink = 0.5, vshrink = 0.5), rightBottom)
-         .add(box(_
-                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:green").attr("stroke-width","32")
-                 ,_.circle().cx(cx+8).cy(cy+8).r(r).style("fill:black")
-                 ,lineWidth=16, shrink = 0.5), rightBottom)
-         .add(box(_   
-                 ,_.rect().width(100).height(100).style("fill:yellow;stroke:blue").attr("stroke-width","64")
-                 ,_.circle().cx(cx+16).cy(cy+16).r(r).style("fill:black")
-                 ,lineWidth=32, shrink = 0.5), rightBottom)
+    Widget w = box(4
+                  ,rect().width(100).height(100).style("fill:red;stroke:yellow").attr("stroke-width","8")
+                  ,circle().cx(cx+2).cy(cy+2).r(r).style("fill:black")
+                  shrink=0.5)
+         .add(box(8 
+                 ,rect().width(100).height(100). style("fill:yellow;stroke:brown").attr("stroke-width","16")
+                 ,circle().cx(cx+4).cy(cy+4).r(r).style("fill:black") 
+                 hshrink = 0.5, vshrink = 0.5), rightBottom)
+         .add(box(16
+                 ,rect().width(100).height(100).style("fill:yellow;stroke:green").attr("stroke-width","32")
+                 ,circle().cx(cx+8).cy(cy+8).r(r).style("fill:black")
+                 ,shrink = 0.5), rightBottom)
+         .add(box(32   
+                 ,rect().width(100).height(100).style("fill:yellow;stroke:blue").attr("stroke-width","64")
+                 ,circle().cx(cx+16).cy(cy+16).r(r).style("fill:black")
+                 ,shrink = 0.5), rightBottom)
         ;
     }
     
@@ -57,41 +57,40 @@ import util::Math;
  //                   "floralwhite", "forestgreen", "indianred", "lavender", "lightseagreen"];
  list[str] colors = ["darkmagenta", "darkolivegreen",  "darkkhaki", "darkorange",   
             "darkorchid", "darkred", "darksalmon", "darkseagreen"];              
- public Widget palettec(Widget p) {
+ public Widget palettec() {
       // Widget _ = createPanel();
-      Widget _ = p;
-      num lw = 4;
+      num lw = 8;
       num shrink = 1.0;
-      Widget result = box(_, _.circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
+      Widget result = box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
           "fill:none;stroke-width:inhirit;stroke:<head(colors)>") 
-                    ,lineWidth = round(lw, 0.001), shrink = 0.5).
-                    attr("width","200").attr("height","200")
+                    , shrink = 0.5).
+                    attr("width","300").attr("height","300")
                     ;
      Widget w = result;
      for (str color <- tail(colors)) {
-          lw=lw/(shrink*((100-lw)/100));
+          lw=round(lw/(shrink*((100-lw)/100)), 0.01);
           w = w.add(
-          box(_, _.circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
-          "stroke-width:<round(lw)>;stroke:<color>; fill:none") 
-                    lineWidth = round(lw, 0.001), shrink = shrink), center);
+          box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
+          "stroke-width:<lw>;stroke:<color>; fill:none") 
+                     shrink = shrink), rightCenter);
           // break;
           } 
       return result;
       }
       
- public Widget paletter(Widget v) {
-      num lw = 4;
+ public Widget paletter() {
+      num lw = 8;
       num shrink = 1;
-      Widget result = box(v, v.rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2).style(
+      Widget result = box(lw, rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2).style(
           "fill:white;stroke-width:inhirit;stroke:<head(colors)>") 
-                    lineWidth = lw, shrink = 0.5).attr("width","200").attr("height","200");
+                    shrink = 0.5, align = rightCenter).attr("width","300").attr("height","300");
      Widget w = result;
      for (str color <- tail(colors)) {
-          lw=lw/(shrink*((100-lw)/100));
+          lw=round(lw/(shrink*((100-lw)/100)), 0.01);
           w = w.add(
-          box(v, v.rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2).style(
+          box(lw, rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2).style(
           "stroke-width:<lw>;stroke:<color>; fill:white") 
-                    lineWidth = lw, shrink = shrink), center);
+                     shrink = shrink), center);
           // break;
           } 
       return result;
@@ -100,7 +99,7 @@ import util::Math;
  void nesting() {
       Widget _ = createPanel();
       addStylesheet(_, "td{border: 4px ridge grey}");
-      vcat(_, [paletter(_), palettec(_)]);
+      vcat(_, [paletter(), palettec()]);
       }
                     
  
@@ -141,4 +140,26 @@ public void flag() {
         g.td[0][1].style("width:70%;padding:0;border-width:0"); 
         g.td[1][1].style("width:70%;padding:0;border-width:0");   
         g.table.style("width:300px; height:400px");        
+     }
+     
+list[Widget] lines() {
+     int n = 10;
+     return 
+            [line(<0, (100/n)*i>, <100, (100/n)*i>).class("grey")|int i<-[1..n]]
+     +      [line(<(100/n)*i,0>, <(100/n)*i, 100>).class("grey")|int i<-[1..n]]
+     +      [line(<0, (100/n)*i>, <(100/n)*i, 100>).class("blue")|int i<-[1..n]]
+     +      [line(<(100/n)*i, 0>, <100, (100/n)*i>).class("blue")|int i<-[1..n]]
+     ;
+     }
+     
+ void linedBox() {
+     Widget _ = createPanel();
+     addStylesheet(_,"line.grey{stroke-width:0.5;stroke:grey}line.blue{stroke-width:0.5;stroke:blue}");
+     num lw=1;
+     Widget result = box(lw
+           ,rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2)
+           .style("fill:white;stroke-width:inhirit;stroke:<head(colors)>"), shrink = 1.0)
+           .attr("width","500").attr("height","500")
+           .add(box(0, lines()),center)
+           ;
      }

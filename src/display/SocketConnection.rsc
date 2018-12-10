@@ -280,7 +280,7 @@ public Widget createPanel(str initPage="MainPanel.html", int portNumber= 8002
     setPrecision(3);
     str result = exchange(p, "root", [],sep);
     Widget r =  createRootWidget(p, result, result);
-    if (scratch==defaultWidget) scratch  = r;
+    scratch  = r;
     // r._ =  r.div()
        // .style("visibility:hidden")
     ;
@@ -356,7 +356,14 @@ public Widget rect() = newWidget(scratch, exchange(scratch.process, "rect", [scr
 
 public Widget line(Widget p) = newWidget(p, exchange(p.process, "line", [p.id], sep));
 
+public Widget line(tuple[num x , num y] p1, tuple[num x, num y] p2) = 
+        newWidget(scratch, exchange(scratch.process, "line", [scratch.id], sep))
+        .attr("x1", "<round(p1.x, 0.01)>").attr("y1", "<round(p1.y, 0.01)>")
+        .attr("x2", "<round(p2.x, 0.01)>").attr("y2", "<round(p2.y, 0.01)>");
+
 public Widget ellipse(Widget p) = newWidget(p, exchange(p.process, "ellipse", [p.id], sep));
+
+public Widget ellipse() = newWidget(scratch, exchange(p.process, "ellipse", [scratch.id], sep));
 
 public Widget circle(Widget p) = newWidget(p, exchange(p.process, "circle", [p.id], sep));
 
@@ -364,7 +371,11 @@ public Widget circle() = newWidget(scratch, exchange(scratch.process, "circle", 
 
 public Widget polygon(Widget p) = newWidget(p, exchange(p.process, "polygon", [p.id], sep));
 
+public Widget polygon() = newWidget(scratch, exchange(scratch.process, "polygon", [scratch.id], sep));
+
 public Widget use(Widget p, Widget g) = newWidget(p, exchange(p.process, "use", [p.id,g.id], sep));
+
+public Widget use(Widget g) = newWidget(scratch, exchange(scratch.process, "use", [scratch.id,g.id], sep));
 
 public Widget path(Widget p, Widget markerStart = defaultWidget, Widget markerMid = defaultWidget
      , Widget markerEnd = defaultWidget ) {
@@ -381,6 +392,11 @@ public Widget path(Widget p, Widget markerStart = defaultWidget, Widget markerMi
           }
      if (!isEmpty(style)) w.style(style);
      return w;
+     }
+     
+ public Widget path(Widget markerStart = defaultWidget, Widget markerMid = defaultWidget
+     , Widget markerEnd = defaultWidget ) {
+     return path(scratch, markerStart = markerStart, markerMid = markerMid, markerEnd = markerEnd);
      }
 
 public Widget text(Widget p) = newWidget(p, exchange(p.process, "text", [p.id], sep));
@@ -685,18 +701,18 @@ public Grid vcat(Widget p, int n) {
       return <r, array>;
       }
       
- Widget box(Widget w, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, num lineWidth=0,
+ Widget box(Widget w, num border, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, 
     Align align = center) {
     if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
-    Widget r = svg(w, hshrink, vshrink, lineWidth);
+    Widget r = svg(w, hshrink, vshrink, border);
     r.align = align;
     for (Widget q<-ws) {add(r, q, q.align);}
     return newWidget(r, r.id);
     }
  
- Widget box(Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, num lineWidth=0,
+ Widget box(num border, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1,
     Align align = center) {  
-        return box(scratch, ws,   style,  shrink, vshrink, hshrink, lineWidth, align);
+        return box(scratch, border, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink, align = align);
     }
  
       
