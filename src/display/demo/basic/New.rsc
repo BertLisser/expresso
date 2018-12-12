@@ -20,20 +20,21 @@ import util::Math;
  public void over() {
     Widget _ = createPanel();
     addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
-    Overlay v = overlay(_, [box(_, _.rect().width(100).height(100).style("fill:red;stroke:yellow"), lineWidth=16, shrink = 0.5, align = leftTop )
-                           ,box(_, _.rect().width(100).height(100).style("fill:green;stroke:yellow"), shrink=0.5, lineWidth=16,
+    Overlay v = overlay(_, [box(0, rect().width(100).height(100).style("fill:red;stroke:yellow"), lineWidth=16, shrink = 0.5, align = leftTop )
+                           ,box(0, rect().width(100).height(100).style("fill:green;stroke:yellow"), shrink=0.5, lineWidth=16,
                            align = rightBottom)    
-                           ,box(_, _.rect().width(100).height(100).style("fill:orange;stroke:yellow"), shrink=0.3, lineWidth = 2, align = leftBottom)
+                           ,box(0, rect().width(100).height(100).style("fill:orange;stroke:yellow"), shrink=0.3, lineWidth = 2, align = leftBottom)
                           ]);
                           
-    v.overlay.style("border-color:black;border-width:2px;border-style:solid;width:400px;height:400px;position:absolute");
+    v.overlay.style(
+    "border-color:black;border-width:2px;border-style:solid;width:50%;height:50%;position:absolute;overflow:hidden;resize:both");
     }
  
     
  public void main() {
     int cx = 25, cy  =25, r = 10;
     Widget _ = createPanel();
-    addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
+    addStylesheet("table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
     Widget w = box(4
                   ,rect().width(100).height(100).style("fill:red;stroke:yellow").attr("stroke-width","8")
                   ,circle().cx(cx+2).cy(cy+2).r(r).style("fill:black")
@@ -59,8 +60,8 @@ import util::Math;
             "darkorchid", "darkred", "darksalmon", "darkseagreen"];              
  public Widget palettec() {
       // Widget _ = createPanel();
-      num lw = 8;
-      num shrink = 1.0;
+      num lw = 2;
+      num shrink = 0.95;
       Widget result = box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
           "fill:none;stroke-width:inhirit;stroke:<head(colors)>") 
                     , shrink = 0.5).
@@ -72,15 +73,15 @@ import util::Math;
           w = w.add(
           box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
           "stroke-width:<lw>;stroke:<color>; fill:none") 
-                     shrink = shrink), rightCenter);
+                     shrink = shrink), center);
           // break;
           } 
       return result;
       }
       
  public Widget paletter() {
-      num lw = 8;
-      num shrink = 1;
+      num lw = 2;
+      num shrink = 0.95;
       Widget result = box(lw, rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2).style(
           "fill:white;stroke-width:inhirit;stroke:<head(colors)>") 
                     shrink = 0.5, align = rightCenter).attr("width","300").attr("height","300");
@@ -106,18 +107,21 @@ import util::Math;
 
 public void flag() {
     Widget _ = createPanel();
-    addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:antiquewhite;border-width:0} td{padding:0};");
-    Grid t = grid(_, [[box(_, _.rect().width(400).height(100).style("fill:red"))],
-                        [box(_,_.rect().width(400).height(100).style("fill:white"))],
-                        [box(_,_.rect().width(400).height(100).style("fill:blue"))]                 
+    addStylesheet(_, 
+    "table{border-spacing:0;padding:0px; 
+    'background-color:antiquewhite;border-width:0} 
+    'td{padding:0;width:450px;height:100px};
+    '");
+    Grid t = grid(_, [[box(0, rect().width(100).height(100).style("fill:red"))],
+                        [box(0,rect().width(100).height(100).style("fill:white"))],
+                        [box(0, rect().width(100).height(100).style("fill:blue"))]                 
                        ]);
     t.table.style("border-color:black;border-width:2px;border-style:solid"); 
-    t.table.width(400).height(300);
     }
 
  
  public void mondriaan() {
-     Widget _ = createPanel();
+     Widget _ = createPanel(width=400, height=700);
      addStylesheet(_,"rect{stroke:black;stroke-width:2;fill:none} 
                      'table{border-spacing:0;padding:0; resize:both; border-collapse:collapse;
                      overflow:auto; border-width:0; width:100%;height:100%} 
@@ -135,11 +139,13 @@ public void flag() {
         Grid rightUnder = hcat(_, [rightLeftUnder.table, rightRightUnder.table]);
         for (Widget w<-concat(rightUnder.td)) {w.style("width:50%;border-width:0"); }
         Grid g = grid(_, [[leftUpper.table,  rightUpper.table], [leftUnder.table, rightUnder.table]]);
-        g.td[0][0].style("width:30%;padding:0;border-width:0"); 
-        g.td[1][0].style("width:30%;padding:0;border-width:0");
-        g.td[0][1].style("width:70%;padding:0;border-width:0"); 
-        g.td[1][1].style("width:70%;padding:0;border-width:0");   
-        g.table.style("width:300px; height:400px");        
+        str w = "20px", h = "250px";
+        g.td[0][0].style("width:<w>;height:<h>;padding:0;border-width:0"); 
+        g.td[1][0].style("width:<w>;height:<h>;padding:0;border-width:0");
+        g.td[0][1].style("width:<w>;height:<h>;padding:0;border-width:0"); 
+        g.td[1][1].style("width:<w>;height:<h>; padding:0;border-width:0"); 
+        // g.table.attr("width","50%").attr("height","50%");    
+        // g.table.style("width:50%; height:50%");        
      }
      
 list[Widget] lines() {
@@ -159,7 +165,24 @@ list[Widget] lines() {
      Widget result = box(lw
            ,rect().width(100-lw).height(100-lw).x(lw/2).y(lw/2)
            .style("fill:white;stroke-width:inhirit;stroke:<head(colors)>"), shrink = 1.0)
-           .attr("width","500").attr("height","500")
+           .attr("width","50%").attr("height","50%")
            .add(box(0, lines()),center)
            ;
      }
+     
+ public void sets() {
+    Widget _ = createPanel();
+    num rx  = 40, ry = 20;
+    addStylesheet(_, "table{border-spacing:0;padding:0px; background-color:none;border-width:0} td{padding:0px};");
+    Overlay v = overlay(_, [box(0,  ellipse().width(100).height(100).cx(50).cy(50).attr("rx", "<rx>").attr("ry", "<ry>").style("fill:red;fill-opacity:0.5")
+                                 ,align = leftCenter, shrink = 0.7)
+                           ,box(0,  ellipse().width(100).height(100).cx(50).cy(50).attr("rx", "<rx>").attr("ry", "<ry>").style("fill:blue;fill-opacity:0.5")
+                                 ,align = rightCenter, shrink = 0.7)
+                           ,box(0,  ellipse().width(100).height(100).cx(50).cy(50).attr("rx", "<rx>").attr("ry", "<ry>").style("fill:yellow;fill-opacity:0.5")
+                                 ,align = centerBottom, shrink = 0.7)
+                          ]);
+                          
+    v.overlay.style("border-color:black;border-width:2px;border-style:solid;width:400px;height:400px;position:absolute");
+    }
+     
+     

@@ -343,6 +343,8 @@ public Widget button(Widget p) {
     }
     
 public Widget addStylesheet(Widget p, str content) = newWidget(p, exchange(p.process, "addStylesheet", [p.id, content], sep)); 
+
+public Widget addStylesheet(str content) = newWidget(scratch, exchange(scratch.process, "addStylesheet", [scratch.id, content], sep)); 
     
 public Widget setInterval(Widget p, int interval) = newWidget(p, exchange(p.process, "setInterval", [p.id, "<interval>"], sep)); 
 
@@ -363,7 +365,7 @@ public Widget line(tuple[num x , num y] p1, tuple[num x, num y] p2) =
 
 public Widget ellipse(Widget p) = newWidget(p, exchange(p.process, "ellipse", [p.id], sep));
 
-public Widget ellipse() = newWidget(scratch, exchange(p.process, "ellipse", [scratch.id], sep));
+public Widget ellipse() = newWidget(scratch, exchange(scratch.process, "ellipse", [scratch.id], sep));
 
 public Widget circle(Widget p) = newWidget(p, exchange(p.process, "circle", [p.id], sep));
 
@@ -688,7 +690,7 @@ public Grid vcat(Widget p, int n) {
       }
       
  public Overlay overlay(Widget p, list[Widget] ws, Align align = center) {
-      Widget r = p.div().style("position:absolute;width:400px;height:400px");
+      Widget r = p.div().style("position:absolute;width:100%;height:100%");
       r.align = align;
       list[Widget] array = [];
       for (Widget w<-ws) {
