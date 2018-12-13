@@ -633,7 +633,7 @@ public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hsh
       r.align = align;
       int vprocent  = round(vshrink*100);
       int hprocent  = round(hshrink*100);    
-      r.style("width:<hprocent>%;height:<vprocent>%");
+      r.class("grid").style("width:<hprocent>%;height:<vprocent>%");
       Widget tr = r.tr();
       list[Widget] tds = [];
       for (Widget w<-ws) {
@@ -646,6 +646,7 @@ public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hsh
       
 public Grid hcat(Widget p, int n) {
       Widget r = p.table();
+      r.class("grid");
       // r.style("width:100%;height:100%");
       Widget tr = r.tr();
       list[Widget] tds = [];
@@ -662,7 +663,7 @@ if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
       r.align = align;
       int vprocent  = round(vshrink*100);
       int hprocent  = round(hshrink*100);    
-      r.style("width:<hprocent>%;height:<vprocent>%");
+      r.class("grid").style("width:<hprocent>%;height:<vprocent>%");
       list[Widget] trs = [];
       list[list[Widget]] tds = [];
       for (Widget w<-ws) {
@@ -678,6 +679,7 @@ if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
 public Grid vcat(Widget p, int n) {
       Widget r = p.table();
       // r.style("width:100%;height:100%");
+      r.class("grid");
       list[Widget] trs = [];
       list[list[Widget]] tds = [];
       for (int i<-[0..n]) {
@@ -690,13 +692,11 @@ public Grid vcat(Widget p, int n) {
       }
       
  public Overlay overlay(Widget p, list[Widget] ws, Align align = center) {
-      Widget r = p.div().style("position:absolute;width:100%;height:100%");
+      Widget r = p.div().class("overlay_panel");
       r.align = align;
       list[Widget] array = [];
       for (Widget w<-ws) {
-         //int vprocent  = round(w.vshrink*100);
-         //int hprocent  = round(w.hshrink*100);
-         Widget div = r.table().class("overlay").tr().td().class("inner");
+         Widget div = r.table().class("overlay").tr().td().class("overlay");
          add(div, w, w.align);
          array+=div;
          }
@@ -724,7 +724,7 @@ public Grid vcat(Widget p, int n) {
       r.align  = align;
       int vprocent  = round(vshrink*100);
       int hprocent  = round(hshrink*100);    
-      r.style("width:<hprocent>%;height:<vprocent>%");
+      r.class("grid").style("width:<hprocent>%;height:<vprocent>%");
       list[Widget] trs = [];
       list[list[Widget]] rows = [];
       for (list[Widget] ws<-ts) {
