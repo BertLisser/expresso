@@ -621,7 +621,8 @@ public void window(Widget z, str html) {
          exchange(html.process, "adjust", [p.id, inner.id],sep); 
          setAlign(html,align);
         //  html.attr("height","100%"); // Problem. Must be 100%
-         return newWidget(inner, inner.id);       
+         // newWidget(inner, inner.id); 
+         return p;      
          } 
     exchange(p.process, "add", [p.id, inner.id],sep); 
     if (!p.isSvg) setAlign(p,align);
@@ -644,6 +645,9 @@ public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hsh
       return <r, [tr], [tds]>;
       }
       
+public Grid hcat(list[Widget] ws, num hshrink=1, num vshrink=1, num shrink = 1, Align align = center) 
+     = hcat(scratch, ws, hshrink= hshrink, vshrink = vshrink, shrink = shrink, align = align);
+      
 public Grid hcat(Widget p, int n) {
       Widget r = p.table();
       r.class("grid");
@@ -656,6 +660,8 @@ public Grid hcat(Widget p, int n) {
          }
       return <r, [tr], [tds]>;
       }
+      
+public Grid hcat(int n, Align align = center) = hcat(scratch, n, align = align);
       
 public Grid vcat(Widget p, list[Widget] ws, num hshrink=1, num vshrink=1, num shrink = 1, Align align = center) {
 if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
@@ -676,10 +682,14 @@ if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
       return <r, trs, tds>;
       }
       
-public Grid vcat(Widget p, int n) {
+public Grid vcat(list[Widget] ws, num hshrink=1, num vshrink=1, num shrink = 1, Align align = center) 
+     = vcat(scratch, ws, hshrink= hshrink, vshrink = vshrink, shrink = shrink, align = align);
+      
+public Grid vcat(Widget p, int n, Align align = center) {
       Widget r = p.table();
       // r.style("width:100%;height:100%");
       r.class("grid");
+      r.align  = align;
       list[Widget] trs = [];
       list[list[Widget]] tds = [];
       for (int i<-[0..n]) {
@@ -690,6 +700,8 @@ public Grid vcat(Widget p, int n) {
          }
       return <r, trs, tds>;
       }
+      
+public Grid vcat(int n, Align align = center) = vcat(scratch, n, align = align);
       
  public Overlay overlay(Widget p, list[Widget] ws, Align align = center) {
       Widget r = p.div().class("overlay_panel");
@@ -702,6 +714,8 @@ public Grid vcat(Widget p, int n) {
          }
       return <r, array>;
       }
+      
+public Overlay overlay(list[Widget] ws, Align align = center)  = overlay(scratch, ws, align = align);
       
  Widget box(Widget w, num border, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, 
     Align align = center) {
@@ -716,8 +730,12 @@ public Grid vcat(Widget p, int n) {
     Align align = center) {  
         return box(scratch, border, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink, align = align);
     }
- 
-      
+    
+ Widget frame(Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1,
+    Align align = center) {  
+        return box(scratch, 0, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink, align = align);
+    }
+     
   public Grid grid(Widget p, list[list[Widget]] ts
       , num shrink=1, num vshrink=1, num hshrink=1, str align = center) {
       Widget r = p.table();
@@ -742,6 +760,9 @@ public Grid vcat(Widget p, int n) {
          }
       return <r, trs, rows>;
       }
+      
+ public Grid grid(list[list[Widget]] ts,num shrink=1, num vshrink=1, num hshrink=1, str align = center)
+           = grid(scratch, ts, shrink=shrink, vshrink=vshrink, hshrink=hshrink, align = align);
 
 public Widget setAlign(Widget p, Align align) {
     tuple[str, str] r = <"", "">; 
