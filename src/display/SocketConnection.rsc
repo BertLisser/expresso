@@ -69,6 +69,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
      ,Widget() circle = widgetVoid
      ,Widget() line = widgetVoid
      ,Widget() path = widgetVoid
+     ,Widget(str) text = widgetStr
+     ,Widget(str) tspan = widgetStr
      ,Widget() foreignObject = widgetVoid
      ,Widget(str) class = widgetStr
      ,Widget(str) style = widgetStr
@@ -115,6 +117,8 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.circle = Widget() {return xml(_r, "circle");};
     _r.line = Widget() {return xml(_r, "line");};
     _r.path = Widget() {return xml(_r, "path");};
+    _r.text  = text(_r);
+    _r.tspan = tspan(_r);
     _r.foreignObject = Widget() {return foreignObject(_r);};
     _r.class = class(_r);
     _r.style = style(_r);
@@ -326,13 +330,14 @@ public Widget li(Widget p) = newWidget(p, exchange(p.process, "li", [p.id], sep)
 
 public Widget span(Widget p) = newWidget(p, exchange(p.process, "span", [p.id], sep));
     
-public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth) {
+public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth, str viewBox) {
     int hprocent  = round(hshrink*100);int vprocent  = round(vshrink*100);
     str result = exchange(p.process, "svg", [p.id], sep);
     Widget r = newWidget(p, result);
+    if (!isEmpty(viewBox)) r.attr("viewBox", viewBox);
     r.isSvg = true;
     r.attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
-    .attr("viewBox", "0 0 100 100").attr("stroke-width","<round(lineWidth)>");
+    .attr("stroke-width","<round(lineWidth)>");
     return r;
     }
     
@@ -401,7 +406,29 @@ public Widget path(Widget p, Widget markerStart = defaultWidget, Widget markerMi
      return path(scratch, markerStart = markerStart, markerMid = markerMid, markerEnd = markerEnd);
      }
 
-public Widget text(Widget p) = newWidget(p, exchange(p.process, "text", [p.id], sep));
+public Widget text(Widget p, str s) {
+    Widget r = newWidget(p, exchange(p.process, "text", [p.id, s], sep));
+    return r;
+    }
+    
+private Widget(str) text(Widget p) =
+   Widget(str s) {
+        return text(p, s); 
+        };
+        
+public Widget text(str s) = text(scratch, s);
+        
+public Widget tspan(Widget p, str text) {
+    Widget r = newWidget(p, exchange(p.process, "tspan", [p.id, text], sep));
+    return r;
+    }
+    
+private Widget(str) tspan(Widget p) =
+   Widget(str s) {
+        return tspan(p, s); 
+        };
+        
+ public Widget tspan(str s) = tspan(scratch, s);
 
 public Widget g(Widget p) = newWidget(p, exchange(p.process, "g", [p.id], sep));
 
@@ -718,22 +745,24 @@ public Grid vcat(int n, Align align = center) = vcat(scratch, n, align = align);
 public Overlay overlay(list[Widget] ws, Align align = center)  = overlay(scratch, ws, align = align);
       
  Widget box(Widget w, num border, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, 
-    Align align = center) {
+    Align align = center, str viewBox="") {
     if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
-    Widget r = svg(w, hshrink, vshrink, border);
+    Widget r = svg(w, hshrink, vshrink, border, viewBox);
     r.align = align;
     for (Widget q<-ws) {add(r, q, q.align);}
     return newWidget(r, r.id);
     }
  
  Widget box(num border, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1,
-    Align align = center) {  
-        return box(scratch, border, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink, align = align);
+    Align align = center, str viewBox = "") {  
+        return box(scratch, border, ws,   style=style,  shrink=shrink, vshrink=vshrink
+           , hshrink = hshrink, align = align, viewBox = viewBox);
     }
     
  Widget frame(Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1,
-    Align align = center) {  
-        return box(scratch, 0, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink, align = align);
+    Align align = center, str viewBox = "") {  
+        return box(scratch, 0, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink
+        , align = align, viewBox = viewBox);
     }
      
   public Grid grid(Widget p, list[list[Widget]] ts

@@ -60,7 +60,7 @@ import util::Math;
       num shrink = 1.0;
       Widget result = box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
           "fill:none;stroke-width:inhirit;stroke:<head(colors)>") 
-                    , shrink = 0.5).
+                    , shrink = 0.5, viewBox="0 0 100 100").
                     attr("width","300").attr("height","300")
                     ;
      Widget w = result;
@@ -68,7 +68,7 @@ import util::Math;
           lw=round(lw/(shrink*((100-lw)/100)), 0.01);
           Widget inner = box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
           "stroke-width:<lw>;stroke:<color>; fill:none"), 
-                     shrink = shrink);
+                     shrink = shrink, viewBox="0 0 100 100");
           w.add(inner,center);
           w = inner;
           // break;
@@ -82,14 +82,14 @@ import util::Math;
       Widget result = box(lw, rect()
         .x(lw/2).y(lw/2).style(
           "fill:white;stroke-width:inhirit;stroke:<head(colors)>;width:<100-lw>%;height:<100-lw>%") 
-                    shrink = 0.5, align = rightCenter).attr("width","300").attr("height","300");
+                    shrink = 0.5, align = rightCenter, viewBox="0 0 100 100").attr("width","300").attr("height","300");
      Widget w = result;
      for (str color <- tail(colors)) {
           lw=round(lw/(shrink*((100-lw)/100)), 0.01);
           Widget inner = box(lw, rect()
           .x(lw/2).y(lw/2).style(
           "stroke-width:<lw>;stroke:<color>; fill:white; width:<100-lw>%;height:<100-lw>%") 
-                     shrink = shrink);
+                     shrink = shrink, viewBox="0 0 100 100");
           w.add(inner, center);
           w = inner;
           // break;
@@ -158,11 +158,11 @@ list[Widget] lines() {
                ,rect().style("width:<(100-lw)>%;height:<(100-lw)>%;fill:white;stroke-width:inhirit;stroke:<head(colors)>")
                  .x(lw/2).y(lw/2)
                ,shrink = 1.0)
-             .add(frame(lines()),center)
+             .add(frame(lines()),center);
            ;
-     Widget left = frame(rect(), shrink = 0.8, align = leftCenter);
-     Widget bottom = frame(rect(), shrink = 0.8, align = centerTop);
-     overlay([left, bottom, frame(middle, shrink=0.8, align = center)]);
+     Widget left = frame(rect(), vshrink = 0.8, hshrink = 0.1, align = leftCenter);
+     Widget bottom = frame(rect(), text("1").attr("y", "15"), hshrink = 0.8, vshrink = 0.1, align = centerTop);
+     overlay([left, bottom, frame(middle, shrink=0.8, align = center, viewBox = "0 0 100 100")]);
      }
    
      
