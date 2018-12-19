@@ -53,6 +53,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
      = widget(int process = -1, str id = "", str eventName="main", str val = "none"
       , Align align = "center", bool isSvg = false
      ,Widget(Widget, Align)  add = widgetWidgetAlign
+     ,Widget(Widget, Align)  add1 = widgetWidgetAlign
      ,Widget() div = widgetVoid
      ,Widget() span = widgetVoid
      ,Widget() h1 = widgetVoid
@@ -135,12 +136,19 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.eventm = eventm(_r);
     _r.eventf = eventf(_r);
     _r.add = add(_r);
+    _r.add1 = add1(_r);
     return _r;
     }
     
 private Widget(Widget, Align) add(Widget p) {
    return Widget(Widget w, Align align) {
         return add(p, w, align);
+        };
+    }
+    
+ private Widget(Widget, Align) add1(Widget p) {
+   return Widget(Widget w, Align align) {
+        return add1(p, w, align);
         };
     }
 
@@ -335,6 +343,7 @@ public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth, str viewBox
     str result = exchange(p.process, "svg", [p.id], sep);
     Widget r = newWidget(p, result);
     if (!isEmpty(viewBox)) r.attr("viewBox", viewBox);
+    else r.attr("viewBox", "0 0 <hprocent> <vprocent>");
     r.isSvg = true;
     r.attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
     .attr("stroke-width","<round(lineWidth)>");
@@ -654,6 +663,11 @@ public void window(Widget z, str html) {
     exchange(p.process, "add", [p.id, inner.id],sep); 
     if (!p.isSvg) setAlign(p,align);
     return p;
+    }
+    
+ public Widget add1(Widget p, Widget inner, Align align) { 
+    add(p, inner, align);
+    return inner;
     }
       
 public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hshrink=1, Align align = center) {
