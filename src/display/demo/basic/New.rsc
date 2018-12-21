@@ -66,7 +66,7 @@ import util::Math;
                     ;
      Widget w = result;
      for (str color <- tail(colors)) {
-          lw=round(lw/(shrink*((100-lw)/100)), 0.001);
+          lw = round((100 / (100-lw)) *lw);
           Widget inner = box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
           "stroke-width:<lw>;stroke:<color>; fill:none"), 
                      shrink = shrink , viewBox="0 0 100 100"
@@ -79,19 +79,20 @@ import util::Math;
       
  public Widget paletter() {
       num lw = 8;
-      num shrink = 1.0;
+      num shrink = 0.95;
       Widget result = box(lw, rect()
         .x(lw/2).y(lw/2).style(
-          "fill:white;stroke-width:inhirit;stroke:<head(colors)>;width:<100-lw>%;height:<100-lw>%") 
+          "fill:white;stroke-width:<lw>;stroke:<head(colors)>;width:<100-lw>%;height:<100-lw>%") 
                     shrink = 0.5,  viewBox="0 0 100 100").attr("width","500").attr("height","500");
      Widget w = result;
      for (str color <- tail(colors)) {
-          lw=round(lw/(shrink*((100-2*lw)/100)), 0.001);
+          lw = round((100 / (100-lw)) *lw);
+          // lw = lw + 2;
           Widget inner = box(lw, rect()
           .x(lw/2).y(lw/2).style(
-          "stroke-width:<lw>;stroke:<color>; fill:white; width:<100-lw>%;height:<100-lw>%") 
+              "stroke-width:<lw>;stroke:<color>; fill:white; width:<100-lw>%;height:<100-lw>%") 
                      shrink = shrink, viewBox="0 0 100 100");
-          w = w.add1(inner, center);
+          w = w.add1(inner, center);   
           // break;
           } 
       return result;
@@ -101,7 +102,7 @@ import util::Math;
       createPanel();
       addStylesheet("td{border: 4px ridge grey}");
       vcat([paletter()
-           // ,palettec()
+            ,palettec()
            ]);
       }
                     

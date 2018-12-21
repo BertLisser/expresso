@@ -51,7 +51,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
  */
  data Widget
      = widget(int process = -1, str id = "", str eventName="main", str val = "none"
-      , Align align = "center", bool isSvg = false
+      , Align align = "center", bool isSvg = false, num border = 0
      ,Widget(Widget, Align)  add = widgetWidgetAlign
      ,Widget(Widget, Align)  add1 = widgetWidgetAlign
      ,Widget() div = widgetVoid
@@ -99,7 +99,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
     
 private Widget newWidget(Widget p,  str id, str eventName) {
     Widget _r =  widget(process=p.process, id=id, eventName=eventName, isSvg = p.isSvg
-     , align = p.align
+     , align = p.align, border = p.border
     );
     
      _r.div = Widget() {return xml(_r, "div");};
@@ -210,25 +210,25 @@ private Widget(str) class(Widget p) {
     
 private Widget(num) width(Widget p) {
    return Widget(num w) {
-        return attribute(p, "width","<w>"); 
+        return attribute(p, "width","<round(w, 0.01)>"); 
         };
     }
     
 private Widget(num) height(Widget p) {
    return Widget(num h) {
-        return attribute(p, "height","<h>"); 
+        return attribute(p, "height","<round(h,0.01)>"); 
         };
     }
     
 private Widget(num) x(Widget p) {
    return Widget(num d) {
-        return attribute(p, "x","<d>"); 
+        return attribute(p, "x","<round(d, 0.01)>"); 
         };
     }
     
 private Widget(num) y(Widget p) {
    return Widget(num d) {
-        return attribute(p, "y","<d>"); 
+        return attribute(p, "y","<round(d,0.01)>"); 
         };
     }
     
@@ -346,7 +346,8 @@ public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth, str viewBox
     else r.attr("viewBox", "0 0 <hprocent> <vprocent>");
     r.isSvg = true;
     r.attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
-    .attr("stroke-width","<round(lineWidth)>");
+    .attr("stroke-width","<round(lineWidth, 0.01)>");
+    r.border = lineWidth;
     return r;
     }
     
@@ -650,11 +651,12 @@ public void window(Widget z, str html) {
     
  public Widget add(Widget p, Widget inner, Align align) { 
     if (inner!=defaultWidget && p.isSvg && inner.isSvg) {
+        // println("add: <p.border>");
          Widget fo = p.foreignObject();
          Widget html = fo.table().attr("width","100%").attr("height","100%").
          class("inner").tr().td().class("inner");
          exchange(html.process, "add", [html.id, inner.id],sep); 
-         exchange(html.process, "adjust", [p.id, inner.id],sep); 
+         exchange(html.process, "adjust", [p.id, "<round(p.border, 0.01)>", inner.id],sep); 
          setAlign(html,align);
         //  html.attr("height","100%"); // Problem. Must be 100%
          // newWidget(inner, inner.id); 
