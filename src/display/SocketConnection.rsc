@@ -340,9 +340,15 @@ public Widget span(Widget p) = newWidget(p, exchange(p.process, "span", [p.id], 
     
 public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth, str viewBox) {
     int hprocent  = round(hshrink*100);int vprocent  = round(vshrink*100);
+    if (!isEmpty(viewBox)) {
+        list[str] box = split(" ", viewBox);
+        // println(box);
+        int width = toInt(box[2]), height = toInt(box[3]);
+        hprocent  = round(hshrink*width); vprocent = round(vshrink*height);
+        }
     str result = exchange(p.process, "svg", [p.id], sep);
     Widget r = newWidget(p, result);
-    if (!isEmpty(viewBox)) r.attr("viewBox", viewBox);
+    if (!isEmpty(viewBox)) r.attr("viewBox", viewBox);   
     else r.attr("viewBox", "0 0 <hprocent> <vprocent>");
     r.isSvg = true;
     r.attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")

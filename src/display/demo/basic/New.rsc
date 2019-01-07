@@ -56,21 +56,23 @@ import util::Math;
             "darkorchid", "darkred", "darksalmon", "darkseagreen"];              
  public Widget palettec() {
       // Widget _ = createPanel();
-      num lw = 8;
+      num lw = 400;
       num shrink = 1.0;
-      Widget result = box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
+      Widget result = box(lw, circle().cx(5000).cy(5000).r(5000-lw/2).style(
           "fill:none;stroke-width:inhirit;stroke:<head(colors)>") 
-                    , shrink = 0.5 , viewBox="0 0 100 100"
+                    , shrink = 0.5 , viewBox="0 0 10000 10000"
                              ).
                     attr("width","300").attr("height","300")
                     ;
      Widget w = result;
      for (str color <- tail(colors)) {
-          lw = round((100 / (100-lw)) *lw);
-          Widget inner = box(lw, circle().cx(50).cy(50).r(round(50-lw/2, 0.001)).style(
+          lw = (10000 / (10000-2*lw)) *lw;
+          Widget inner = box(lw, circle().cx(5000).cy(5000).r(5000-lw/2).style(
           "stroke-width:<lw>;stroke:<color>; fill:none"), 
-                     shrink = shrink , viewBox="0 0 100 100"
-                     );
+                     shrink = shrink , viewBox="0 0 10000 10000"
+                     )
+          //.attr("width","10000").attr("height","10000")
+          ;
           w = w.add1(inner,center);
           // break;
           } 
@@ -78,20 +80,22 @@ import util::Math;
       }
       
  public Widget paletter() {
-      num lw = 8;
-      num shrink = 0.95;
+      num lw = 400;
+      num shrink = 1.0;
       Widget result = box(lw, rect()
         .x(lw/2).y(lw/2).style(
-          "fill:white;stroke-width:<lw>;stroke:<head(colors)>;width:<100-lw>%;height:<100-lw>%") 
-                    shrink = 0.5,  viewBox="0 0 100 100").attr("width","500").attr("height","500");
+          "fill:white;stroke-width:<lw>;stroke:<head(colors)>;width:<10000-lw>;height:<10000-lw>") 
+                    shrink = 0.5,  viewBox="0 0 10000 10000").attr("width","500").attr("height","500");
      Widget w = result;
      for (str color <- tail(colors)) {
-          lw = round((100 / (100-lw)) *lw);
+          lw = (10000 / (10000-2*lw)) *lw;
           // lw = lw + 2;
           Widget inner = box(lw, rect()
           .x(lw/2).y(lw/2).style(
-              "stroke-width:<lw>;stroke:<color>; fill:white; width:<100-lw>%;height:<100-lw>%") 
-                     shrink = shrink, viewBox="0 0 100 100");
+              "stroke-width:<lw>;stroke:<color>; fill:white; width:<10000-lw>;height:<10000-lw>"), 
+                     shrink = shrink, viewBox="0 0 10000 10000")
+                     // .attr("width","10000").attr("height","10000")
+                     ;
           w = w.add1(inner, center);   
           // break;
           } 
