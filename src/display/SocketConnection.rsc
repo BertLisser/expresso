@@ -113,7 +113,7 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.td = Widget() {return xml(_r, "td");};
     _r.button = Widget() {return xml(_r, "button");};
     _r.input = Widget() {return xml(_r, "input");};
-    _r.svg = Widget() {_r.isSvg=true; Widget w = svg(_r, 1, 1, 0);return w;};
+    _r.svg = Widget() {_r.isSvg=true; Widget w = svg(_r, 1, 1, 0, "");return w;};
     _r.rect = Widget() {return xml(_r, "rect");};
     _r.circle = Widget() {return xml(_r, "circle");};
     _r.line = Widget() {return xml(_r, "line");};
@@ -357,6 +357,8 @@ public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth, str viewBox
     return r;
     }
     
+public Widget svg(Widget p) = svg(p, 1, 1, 0, "");
+    
 public Widget button(Widget p) {
     str result = exchange(p.process, "button", [p.id], sep);
     Widget r = newWidget(p, result);
@@ -552,12 +554,14 @@ public Widget innerHTML(Widget p, str text) {
     }
     
 public Widget waitForUser(Widget p) {
-    str s = exchange(p.process, p.eventName, [p.id], sep);
-    if (isEmpty(s)) return newWidget(p, "", "exit", p.svg);
+    str s = exchange(p.process, "wait" , [p.id], sep);
+    // println("WaitForUser <s> <p.eventName>");
+    if (isEmpty(s)) return newWidget(p, "", "exit");
     list[str] r = split(":", s);
     if (size(r)<2) return defaultWidget;
-    Widget z = newWidget(p, r[0], r[1], p.svg);
-    if (size(r)==3) z.val = r[2];       
+    Widget z = newWidget(p, r[0], r[1]);
+    if (size(r)==3) z.val = r[2]; 
+    // println("waitForUser1:<z.id>");      
     return z;
     }
     
@@ -616,7 +620,6 @@ public java void closeSocketConnection(int processId, bool force);
       Widget z = getOneFrom(events[0][0])[0]();
       while (true) {
         Widget s = waitForUser(z);
-        // println("eventLoop: <s.id> <s.eventName>");
         if (s.process<0) continue;
         if (s.eventName=="exit") {println("exit"); return;}
         tuple[str, str] t = <s.id, s.eventName>;
@@ -629,7 +632,6 @@ public java void closeSocketConnection(int processId, bool force);
  public void eventLoop(Widget z, lrel[set[tuple[str id , str eventName]], void()] events1) {
       while (true) {
         Widget s = waitForUser(z);
-        // println("eventLoop: <s.id> <s.eventName>");
         if (s.process<0) continue;
         if (s.eventName=="exit") {println("exit"); return;}
         tuple[str, str] t = <s.id, s.eventName>;

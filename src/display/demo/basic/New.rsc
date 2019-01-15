@@ -71,7 +71,6 @@ import util::Math;
           "stroke-width:<lw>;stroke:<color>; fill:none"), 
                      shrink = shrink , viewBox="0 0 10000 10000"
                      )
-          //.attr("width","10000").attr("height","10000")
           ;
           w = w.add1(inner,center);
           // break;
@@ -81,33 +80,38 @@ import util::Math;
       
  public Widget paletter() {
       num lw = 400;
-      num shrink = 1.0;
+      num hshrink = 0.9;
+      num vshrink = 0.9;
       Widget result = box(lw, rect()
         .x(lw/2).y(lw/2).style(
           "fill:white;stroke-width:<lw>;stroke:<head(colors)>;width:<10000-lw>;height:<10000-lw>") 
-                    shrink = 0.5,  viewBox="0 0 10000 10000").attr("width","500").attr("height","500");
+                    , viewBox="0 0 10000 10000", shrink = 0.8)
+                    // .attr("width","500").attr("height","500")
+                    ;
      Widget w = result;
      for (str color <- tail(colors)) {
           lw = (10000 / (10000-2*lw)) *lw;
-          // lw = lw + 2;
+          lw = lw/0.9;
           Widget inner = box(lw, rect()
           .x(lw/2).y(lw/2).style(
               "stroke-width:<lw>;stroke:<color>; fill:white; width:<10000-lw>;height:<10000-lw>"), 
-                     shrink = shrink, viewBox="0 0 10000 10000")
-                     // .attr("width","10000").attr("height","10000")
+                     vshrink = vshrink, hshrink = hshrink, viewBox="0 0 10000 10000")
                      ;
-          w = w.add1(inner, center);   
+          w = w.add1(inner, rightBottom);   
           // break;
           } 
-      return result;
+      return frame(result.class("app"), viewBox="0 0 10000 10000")
+         .attr("width","500").attr("height","500")
+      ;
       }
       
  void nesting() {
       createPanel();
-      addStylesheet("td{border: 4px ridge grey}");
-      vcat([paletter()
-            ,palettec()
+      addStylesheet("td{border: 4px ridge grey} .aap{transform:rotate(30deg)}");
+      Grid g = vcat([paletter()
+                    ,palettec()
            ]);
+      // g.td[0][0].height(700).width(700);
       }
                     
  
@@ -160,8 +164,6 @@ list[Widget] lines() {
  
  list[Widget] vText() = [text("<i>").y(3+8*i).x(4)|i<-[1..10]];
  
- 
-     
  void linedBox() {
      createPanel();
      num lw=1;
@@ -173,13 +175,26 @@ list[Widget] lines() {
              .add(frame(lines()),center);
            ;
      Widget left = frame([rect()]+vText(), vshrink = 0.8, hshrink = 0.1, align = leftCenter
-         //, viewBox="0 0 20 160"
+        //, viewBox="0 0 100 100"
          );
      Widget bottom = frame([rect()]+hText(), hshrink = 0.8, vshrink = 0.1, align = centerBottom
-         // , viewBox="0 0 160 20"
-         
+        //, viewBox="0 0 100 100"   
          );
-     overlay([left, bottom, frame(middle, shrink=0.8, align = center, viewBox = "0 0 100 100")]);
+     Widget extra = frame(frame(
+      circle().style("fill:yellow;stroke-width:4;stroke:red").r(46).cx(50).cy(50), 
+      shrink=0.5
+         , align = rightBottom
+         , viewBox="0 0 100 100"
+         )
+           .add(text("Hallo").x(50).y(50).style("text-anchor:middle;dominant-baseline:middle;font-size:20"), center)
+         , shrink=0.5
+         , viewBox = "0 0 100 100"
+         , align=leftTop)
+         
+         ;
+     //Widget extra1 = frame([circle().style("fill:yellow;stroke-width:4;stroke:red").r(21).cx(27).cy(27)], shrink=0.5
+     //    , align = center, viewBox="-25 -25 100 100").add(text("Hallo").x(15).y(27), center);
+     overlay([left, bottom, frame(middle, shrink=0.8, align = center, viewBox = "0 0 100 100"), extra]);
      }
    
      

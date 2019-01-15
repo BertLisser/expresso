@@ -219,6 +219,7 @@ public class SocketConnection {
             output.println(toServer.getValue());
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String result = in.readLine();
+            // while (result.isEmpty()) result = in.readLine();
             return vf.string(result);
         }
         catch (IOException e) {
