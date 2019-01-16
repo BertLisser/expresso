@@ -209,5 +209,37 @@ list[Widget] lines() {
                                  ,align = centerBottom, shrink = 0.7, viewBox = "0 0 100 100")
                           ]);
     }
+    
+ public void tables() {
+     int n  = 10, m = 10;
+     Widget w = createPanel();
+     addStylesheet("td{border: 4px ridge grey;text-align:center}");
+     Grid g =  grid([m|int i<-[0..n]]);
+     for (int i<-[0..n])
+        for (int j<-[0..m])
+           g.td[i][j].innerHTML("<i*j>");
+     }
+     
+ public void pascal() {
+     int n  =  12;
+     Widget w = createPanel();
+     addStylesheet(
+     "
+     'td{text-align:center}
+     'table{width:300px;height:300px}
+     '.pascal{width:400px;height:400px;margin:auto}
+     ");
+     list[int] a = [((i == (n-1)/2)? 1:0)|int i<-[0..n]];
+     list[list[int]] r = [a];
+     for (int i<-[0..n]) {
+        list[int] b = [(j>=1?a[j-1]:0)+(j>=n-1?0:a[j+1])|j<-[0..n]];
+        r+=[b];
+        a = b;
+        }
+     Grid g =  grid(w.div().class("pascal"), [n|int i<-[0..n/2]]);
+     for (int i<-[0..n/2])
+        for (int j<-[0..n])
+           if (r[i][j]!=0) g.td[i][j].innerHTML("<r[i][j]>");
+     }
      
      

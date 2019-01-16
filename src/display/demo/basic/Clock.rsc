@@ -5,7 +5,7 @@ import Prelude;
 import util::Math;
 
 tuple[int X, int Y] time2coord(int time) {
-   real angle = 2 * PI() * (toReal(time) / 60.0);
+   real angle = 2 * PI() * (toReal(time) / 600.0);
    int handX = round(50 + 40 * cos(angle));
    int handY = round(50 + 40 * sin(angle));
    return <handX, handY>;
@@ -23,11 +23,11 @@ void clock(Widget dv) {
                        .attr("stroke", "grey").attr("stroke-width", "4");
    Widget l= line(p).attr("x1", "50").attr("y1", "50").attr("x2", "<hand.X>").attr("y2", "<hand.Y>")
    .attr("stroke","#023963").attr("fill", "orange"); 
-   Widget b = button(dv).innerHTML("On/Off")
+   button(dv).innerHTML("On/Off")
    .event(click, (Widget b)
          {running = !running;
            if (running) {
-                setInterval(b, 1000)
+                setInterval(b, 1)
                   .attr("style", "background-color:red")
                   .event(tick,  (Widget b)
                      { 

@@ -555,7 +555,6 @@ public Widget innerHTML(Widget p, str text) {
     
 public Widget waitForUser(Widget p) {
     str s = exchange(p.process, "wait" , [p.id], sep);
-    // println("WaitForUser <s> <p.eventName>");
     if (isEmpty(s)) return newWidget(p, "", "exit");
     list[str] r = split(":", s);
     if (size(r)<2) return defaultWidget;
@@ -816,6 +815,27 @@ public Overlay overlay(list[Widget] ws, Align align = center)  = overlay(scratch
       
  public Grid grid(list[list[Widget]] ts,num shrink=1, num vshrink=1, num hshrink=1, str align = center)
            = grid(scratch, ts, shrink=shrink, vshrink=vshrink, hshrink=hshrink, align = align);
+           
+ public Grid grid(Widget p, list[int] a, Align align = center) {
+      Widget r = p.table();
+      // r.style("width:100%;height:100%");
+      r.class("grid");
+      r.align  = align;
+      list[Widget] trs = [];
+      list[list[Widget]] tds = [];
+      for (int i<-[0..size(a)]) {
+         Widget tr = r.tr();
+         trs+=tr;
+         tds+=[[]];
+         for (int j<-[0..a[i]]) {
+            Widget td = tr.td();
+            tds[i]+=[td];
+           }
+         }
+      return <r, trs, tds>;
+      }
+      
+public Grid grid(list[int]a, Align align = center) = grid(scratch, a, align = align);
 
 public Widget setAlign(Widget p, Align align) {
     tuple[str, str] r = <"", "">; 

@@ -103,7 +103,7 @@ void updateView(Msg msg) {
        }
     }
    
-void update(Widget p, Msg msg) {
+void update(Msg msg) {
     updateModel(msg);
     updateView(msg);
     }
