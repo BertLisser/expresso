@@ -164,6 +164,16 @@ public Widget(str) style(Widget p) {
         };
     }
     
+public str url(Widget w) {
+    return "url(#<w.id>)";
+    }
+    
+public Widget lineairGradient(Widget p) = newWidget(p, exchange(p.process, "lineairGradient", [p.id], sep));
+
+public Widget radialGradient(Widget p) = newWidget(p, exchange(p.process, "radialGradient", [p.id], sep));
+
+public Widget stop(Widget p) = newWidget(p, exchange(p.process, "stop", [p.id], sep));
+    
 private Widget(str, void(Widget)) event(Widget p) {
     return Widget(str eventName, void(Widget) val) {
          void() q = () {val(p);};
@@ -381,11 +391,13 @@ public Widget rect() = newWidget(scratch, exchange(scratch.process, "rect", [scr
 
 public Widget line(Widget p) = newWidget(p, exchange(p.process, "line", [p.id], sep));
 
-public Widget line(tuple[num x , num y] p1, tuple[num x, num y] p2) = 
-        newWidget(scratch, exchange(scratch.process, "line", [scratch.id], sep))
+public Widget line(Widget p, tuple[num x , num y] p1, tuple[num x, num y] p2) = 
+        newWidget(p, exchange(p.process, "line", [p.id], sep))
         .attr("x1", "<round(p1.x, 0.01)>").attr("y1", "<round(p1.y, 0.01)>")
         .attr("x2", "<round(p2.x, 0.01)>").attr("y2", "<round(p2.y, 0.01)>");
-
+        
+public Widget line(tuple[num x , num y] p1, tuple[num x, num y] p2) = line(scratch, p1, p2);
+        
 public Widget ellipse(Widget p) = newWidget(p, exchange(p.process, "ellipse", [p.id], sep));
 
 public Widget ellipse() = newWidget(scratch, exchange(scratch.process, "ellipse", [scratch.id], sep));
@@ -450,7 +462,11 @@ private Widget(str) tspan(Widget p) =
 
 public Widget g(Widget p) = newWidget(p, exchange(p.process, "g", [p.id], sep));
 
+public Widget g() = g(scratch);
+
 public Widget defs(Widget p) = newWidget(p, exchange(p.process, "defs", [p.id], sep));
+
+public Widget defs() = newWidget(scratch, exchange(p.process, "defs", [p.id], sep));
 
 public Widget marker(Widget p) = newWidget(p, exchange(p.process, "marker", [p.id], sep));
 
