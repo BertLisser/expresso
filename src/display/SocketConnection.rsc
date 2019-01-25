@@ -92,6 +92,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
  alias Grid = tuple[Widget table, list[Widget] tr, list[list[Widget]] td];
  
  alias Overlay = tuple[Widget overlay, list[Widget] array];
+ 
+ alias Graph = tuple[str name, str title, lrel[num x, num y] d];
       
  private Widget newWidget(Widget p,  str id) {
     return newWidget(p, id, p.eventName);
@@ -870,3 +872,67 @@ public Widget setAlign(Widget p, Align align) {
     styleChild(p, r[0], 0);
     return p;
     }
+    
+private int size1(list[str] t) = size(t)+1;
+    
+private list[Widget] hText(list[str] ht) = [text(ht[i]).x(80*(i+1)/size1(ht)).y(4)|i<-[0..size(ht)]];
+ 
+private list[Widget] vText(list[str] vt) = [text(vt[i]).y(3-3+80*(i+1)/size1(vt)).x(4)|i<-[0..size(vt)]];
+    
+private list[Widget] lattice(int h, int v) {
+     int h1 = h + 1;
+     int v1 = v + 1;
+     addStylesheet("line.grey{stroke-width:0.5;stroke:grey}");
+     return 
+            [line(<0, (100/v1)*i>, <100, (100/v1)*i>).class("grey")|int i<-[1..v1]]
+     +      [line(<(100/h1)*i,0>, <(100/h1)*i, 100>).class("grey") |int i<-[1..h1]]
+     ;
+     }
+     
+private str scX(num d, num x, num width) = "<100*round((d-x)/width, 0.001)>";
+
+private str scY(num d, num y, num height) = "<100-100*round((d-y)/height, 0.001)>";
+     
+ private Widget reposition(Widget p, Graph d, tuple[num x , num y , num width, num height] v) {
+     if (isEmpty(d.d)) return defaultWidget;
+     tuple[num x, num y] h = head(d.d);
+     str r = "M <scX(h.x,v.x, v.width)> <scY(h.y, v.y, v.height)>";
+     d.d = tail(d.d);
+     for (tuple[num x, num y] h <- d.d) {
+      // println("Q: <h.x> <h.y>, <v.x>, <v.y> <v.width> <v.height>");
+      r+=",L <scX(h.x,v.x, v.width)> <scY(h.y, v.y, v.height)>";
+      }
+     // println("QQQ: <r>");
+     Widget w = path(p);  
+     w.class(d.name).attr("d", r).attr("fill","none");
+     return w;
+     }
+     
+ public Overlay graph(Widget p, str lowerLeftCorner, list[str] hAxe, list[str] vAxe, Graph d ...,
+     Widget extra=defaultWidget, tuple[num x , num y , num width, num height] viewBox=<0, 0, 100, 100>) {
+        list[Widget] r = [reposition(p, z, viewBox)|Graph z<-d];
+     return graphEnv(p, lowerLeftCorner, hAxe, reverse(vAxe), r);
+     }
+    
+ public Overlay graphEnv(Widget p, str lowerLeftCorner, list[str] hAxe, list[str] vAxe, Widget ws ..., 
+     Widget extra=defaultWidget) {
+     num lw=1;
+     addStylesheet("rect{fill:antiquewhite;}text{font-size:4px;text-anchor:middle;dominant-baseline:central}");
+     Widget middle = box(lw
+               ,rect().style("width:<(100-lw)>%;height:<(100-lw)>%;fill:white;stroke-width:inhirit;stroke:darkmagenta")
+                 .x(lw/2).y(lw/2)
+               ,shrink = 1.0);  
+             middle.add(frame(lattice(size(hAxe)-1, size(vAxe)-1)+ws)
+                   ,center)        
+             ;
+           ;
+     Widget left = frame([rect()]+vText(tail(vAxe)), vshrink = 0.8, hshrink = 0.1, align = leftCenter);
+     Widget bottom = frame([rect()]+hText(prefix(hAxe)), hshrink = 0.8, vshrink = 0.1, align = centerBottom);
+     Widget lBottom = frame([rect()]+[text(lowerLeftCorner).x(4).y(4)], hshrink = 0.1, vshrink = 0.1, align = leftBottom ); 
+     Widget rBottom = frame([rect()]+[text(last(hAxe)).x(0).y(4)], hshrink = 0.1, vshrink = 0.1, align = rightBottom);
+     Widget tLeft = frame([rect()]+[text(head(vAxe)).x(4).y(8)], hshrink = 0.1, vshrink = 0.1, align = leftTop); 
+      Overlay g = overlay([left, bottom, tLeft, lBottom, rBottom, frame(middle, shrink=0.8
+             , align = center, viewBox = "0 0 100 100")]+((extra==defaultWidget)?[]:[extra])); 
+      return g;
+      
+ }

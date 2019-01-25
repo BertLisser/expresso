@@ -114,8 +114,6 @@ import util::Math;
       // g.td[0][0].height(700).width(700);
       }
                     
- 
-
 public void flag() {
     createPanel();
     Grid t = grid([[frame(rect().style("fill:red"))],
@@ -149,82 +147,48 @@ public void flag() {
         for (Widget w<-concat(g.td)) w.class("mainGrid");        
      }
      
-int size1(list[str] t) = size(t)+1;
-     
-list[Widget] lines(Widget p) {
+list[Widget] lines() {
      int n = 20;
      addStylesheet("line.blue{stroke-width:0.5;stroke:blue}");
      return 
-          [line(p, <0, (100/n)*i>, <(100/n)*i, 100>).class("blue")|int i<-[1..n]]
+          [line(<0, (100/n)*i>, <(100/n)*i, 100>).class("blue")|int i<-[1..n]]
         + [line(<(100/n)*i, 0>, <100, (100/n)*i>).class("blue")|int i<-[1..n]]
      ;
      }
-     
- list[Widget] lattice(int h, int v) {
-     int h1 = h + 1;
-     int v1 = v + 1;
-     addStylesheet("line.grey{stroke-width:0.5;stroke:grey}");
-     return 
-            [line(<0, (100/v1)*i>, <100, (100/v1)*i>).class("grey")|int i<-[1..v1]]
-     +      [line(<(100/h1)*i,0>, <(100/h1)*i, 100>).class("grey") |int i<-[1..h1]]
-     ;
-     }
-     
- 
-     
- list[Widget] hText(list[str] ht) = [text(ht[i]).x(80*(i+1)/size1(ht)).y(4)|i<-[0..size(ht)]];
- 
- list[Widget] vText(list[str] vt) = [text(vt[i]).y(3-3+80*(i+1)/size1(vt)).x(4)|i<-[0..size(vt)]];
  
  void linedBox() {
-     createPanel();
-     num lw=1;
-     list[str] h = ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"];
-     list[str] v= ["5","4","3","2","1"];
-     addStylesheet("rect{fill:antiquewhite;}text{font-size:4px;text-anchor:middle;dominant-baseline:central}");
-     Widget middle = box(lw
-               ,rect().style("width:<(100-lw)>%;height:<(100-lw)>%;fill:white;stroke-width:inhirit;stroke:<head(colors)>")
-                 .x(lw/2).y(lw/2)
-               ,shrink = 1.0);  
-             Widget q = g();
-             lines(q);  
-             middle.add(frame(lattice(size(h)-1, size(v)-1)+[q])
-                   ,center)        
-             ;
-           ;
-     Widget left = frame([rect()]+vText(tail(v)), vshrink = 0.8, hshrink = 0.1, align = leftCenter
-        //, viewBox="0 0 100 100"
-         );
-     Widget bottom = frame([rect()]+hText(prefix(h)), hshrink = 0.8, vshrink = 0.1, align = centerBottom
-        //, viewBox="0 0 100 100"   
-         );
-     Widget lBottom = frame([rect()]+[text("0").x(4).y(4)], hshrink = 0.1, vshrink = 0.1, align = leftBottom
-        //, viewBox="0 0 100 100"   
-         ); 
-     Widget rBottom = frame([rect()]+[text(last(h)).x(0).y(4)], hshrink = 0.1, vshrink = 0.1, align = rightBottom
-        //, viewBox="0 0 100 100"   
-         );
-      Widget tLeft = frame([rect()]+[text(head(v)).x(4).y(8)], hshrink = 0.1, vshrink = 0.1, align = leftTop
-        //, viewBox="0 0 100 100"   
-         );  
-     Widget extra = frame(frame(
-      circle().style("fill:yellow;stroke-width:4;stroke:red").r(46).cx(50).cy(50), 
-      shrink=0.5
-         , align = rightBottom
-         , viewBox="0 0 100 100"
-         )
-           .add(text("Hallo").x(50).y(50).style("text-anchor:middle;dominant-baseline:middle;font-size:20"), center)
-         , shrink=0.5
-         , viewBox = "0 0 100 100"
-         , align=leftTop)
-         
-         ;
-     //Widget extra1 = frame([circle().style("fill:yellow;stroke-width:4;stroke:red").r(21).cx(27).cy(27)], shrink=0.5
-     //    , align = center, viewBox="-25 -25 100 100").add(text("Hallo").x(15).y(27), center);
-     Overlay g = overlay([left, bottom, tLeft, lBottom, rBottom, frame(middle, shrink=0.8, align = center, viewBox = "0 0 100 100"), extra]);
-     g.overlay.style("width:70%;height:50%");
-     // q.attr("transform","translate(0 50) scale(1 -1) translate(0 -50)");    
+     Widget p = createPanel();
+     Widget extra = frame(
+            frame(
+                circle().style("fill:yellow;stroke-width:4;stroke:red").r(46).cx(50).cy(50), 
+                shrink=0.5, align = rightBottom ,viewBox="0 0 100 100"
+            ).add(text("Hallo").x(50).y(50)
+                 .style("text-anchor:middle;dominant-baseline:middle;font-size:20"), center
+                 )
+       ,shrink=0.5, viewBox="0 0 100 100", align=leftTop
+       );
+     Overlay z = graphEnv(p ,"0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
+                                 ["5","4","3","2","1"], lines(), extra = extra);
+     z.overlay.style("width:70%;height:50%");
      }
+     
+ void gonio() {
+    Widget p = createPanel();
+    addStylesheet(
+    "path{stroke-width:1}
+    '.sin{stroke:blue}
+    '.cos{stroke:red}
+    "
+    );
+    num n = 64;
+    num delta = 1.0/n;
+    Graph d1 = <"sin","", [<x, sin(x)>|num x<-[0, 2*PI()/n..2*PI()+delta]]>;
+    Graph d2 = <"cos","",[<x, cos(x)>|num x<-[0, 2*PI()/n..2*PI()+delta]]>;
+    Overlay z = graph(p ,"0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
+                                 ["-2","-1","0","1","2"], d1, d2, viewBox=<0, -2, 2*PI(), 4>);
+    int f = 70;
+    z.overlay.style("width:<f>%;height:<floor(4.0/(2*PI())*f)>%");                               
+    }
    
      
  public void sets() {
