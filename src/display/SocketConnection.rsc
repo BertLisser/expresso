@@ -179,9 +179,10 @@ public Widget stop(Widget p) = newWidget(p, exchange(p.process, "stop", [p.id], 
 private Widget(str, void(Widget)) event(Widget p) {
     return Widget(str eventName, void(Widget) val) {
          void() q = () {val(p);};
-         if (!(events[p.process]?)) events[p.process] = [];
+         if (!(events[p.process]?)) events[p.process] = [];   
          events[p.process]+=<{<p.id, eventName>} , q>;
          Widget r = newWidget(p, p.id);
+         addEventListener(p, eventName);
          return r;
          };
     }
@@ -192,6 +193,7 @@ private Widget(str, Msg, void(Msg)) eventm(Widget p) {
          if (!(events[p.process]?)) events[p.process] = [];
          events[p.process]+=<{<p.id, eventName>} , q>;
          Widget r = newWidget(p, p.id);
+         addEventListener(p, eventName);
          return r;
          };
     }
@@ -202,9 +204,12 @@ private Widget(str, Msg(str), void(Msg)) eventf(Widget p) {
          if (!(events[p.process]?)) events[p.process] = [];
          events[p.process]+=<{<p.id, eventName>} , q>;
          Widget r = newWidget(p, p.id);
+         addEventListener(p, eventName);
          return r;
          };
     }
+    
+public str addEventListener(Widget p, str event) = exchange(p.process, "addEventListener", [p.id, event], sep); 
 /*   
 private Widget() divf(Widget p) {
    return Widget() {
@@ -573,6 +578,7 @@ public Widget innerHTML(Widget p, str text) {
     
 public Widget waitForUser(Widget p) {
     str s = exchange(p.process, "wait" , [p.id], sep);
+    // println("waitForUser: <s>");
     if (isEmpty(s)) return newWidget(p, "", "exit");
     list[str] r = split(":", s);
     if (size(r)<2) return defaultWidget;

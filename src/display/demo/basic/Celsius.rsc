@@ -32,6 +32,7 @@ real toReal_(str s) {
 }
 
 void updateView(Model m, Msg msg, Widget cc, Widget ff) {
+    // println(m);
     switch (msg) {
        case c(_): {property(ff, "value", "<round(toF(m))>");}
        case f(_): {property(cc, "value", "<round(m)>");}
@@ -52,7 +53,9 @@ public void main() {
    Widget d = div(z);
    h2(d).innerHTML("Celsius to fahrenheit converter");
    Widget pp  = p(d); span(pp).innerHTML("C:"); 
-   Widget cc = input(pp).attr("value", "<round(model)>").attr("type", "text");
+   // Widget cc = input(pp).attr("value", "<round(model)>").attr("type", "text");
+   Widget cc = input(pp).attr("value", "<round(model)>")
+        .attr("type", "range").attr("min","0").attr("max","100");
    pp  = p(d); span(pp).innerHTML("F:"); 
    Widget ff = input(pp).attr("value", "<round(toF(model))>").attr("type", "text");
    void(Widget) updateChange() {
@@ -60,6 +63,7 @@ public void main() {
          Msg msg;
          if (w.id == cc.id) {msg = c(property(w, "value"));}
          if (w.id == ff.id) {msg = f(property(w, "value"));}
+         // println("updateChange: <w.id> <cc.id> <msg>");
          model=update(model, msg);
          updateView(model, msg, cc ,ff); 
          };
