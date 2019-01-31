@@ -65,6 +65,7 @@ import util::Math;
                     attr("width","300").attr("height","300")
                     ;
      Widget w = result;
+     shrink = 1.0;
      for (str color <- tail(colors)) {
           lw = (10000 / (10000-2*lw)) *lw;
           Widget inner = box(lw, circle().cx(5000).cy(5000).r(5000-lw/2).style(
@@ -82,34 +83,39 @@ import util::Math;
       num lw = 400;
       num hshrink = 0.9;
       num vshrink = 0.9;
-      Widget result = box(lw, rect()
+      Widget result = svg().attr("viewBox","0 0 10000 10000");
+      Widget w = result.foreignObject().class("aap").attr("width","10000").attr("height","10000");    
+      w = box(w, lw, rect()
         .x(lw/2).y(lw/2).style(
           "fill:white;stroke-width:<lw>;stroke:<head(colors)>;width:<10000-lw>;height:<10000-lw>") 
-                    , viewBox="0 0 10000 10000", shrink = 0.8)
+                    , viewBox="0 0 10000 10000", shrink = 1.0);
                     // .attr("width","500").attr("height","500")
-                    ;
-     Widget w = result;
+             ;
      for (str color <- tail(colors)) {
           lw = (10000 / (10000-2*lw)) *lw;
           lw = lw/0.9;
           Widget inner = box(lw, rect()
           .x(lw/2).y(lw/2).style(
-              "stroke-width:<lw>;stroke:<color>; fill:white; width:<10000-lw>;height:<10000-lw>"), 
+              "stroke-width:<lw>;stroke:<color>; fill:white; width:<10000-lw>;height:<10000-lw>")
+                  , 
                      vshrink = vshrink, hshrink = hshrink, viewBox="0 0 10000 10000")
+                     
                      ;
           w = w.add1(inner, rightBottom);   
-          // break;
-          } 
-      return frame(result.class("app"), viewBox="0 0 10000 10000")
-         .attr("width","500").attr("height","500")
+          /// break;
+          }
+      result.attr("width", "500").attr("height", "500")// .attr("viewBox","0 0 100 100")
       ;
+      return result;
       }
       
  void nesting() {
       createPanel();
-      addStylesheet("td{border: 4px ridge grey} .aap{transform:rotate(30deg)}");
+      addStylesheet("td{border: 4px ridge grey} 
+       .aap{transform:rotate(30deg) scale(0.5);transform-origin: 50% 50%}
+        ");
       Grid g = vcat([paletter()
-                    ,palettec()
+                     ,palettec()
            ]);
       // g.td[0][0].height(700).width(700);
       }

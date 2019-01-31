@@ -51,7 +51,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
  */
  data Widget
      = widget(int process = -1, str id = "", str eventName="main", str val = "none"
-      , Align align = "center", bool isSvg = false, num border = 0
+      , Align align = "center", bool isSvg = false, num border = 0, num hshrink = 1, num vshrink = 1
      ,Widget(Widget, Align)  add = widgetWidgetAlign
      ,Widget(Widget, Align)  add1 = widgetWidgetAlign
      ,Widget() div = widgetVoid
@@ -101,7 +101,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
     
 private Widget newWidget(Widget p,  str id, str eventName) {
     Widget _r =  widget(process=p.process, id=id, eventName=eventName, isSvg = p.isSvg
-     , align = p.align, border = p.border
+     , align = p.align, border = p.border, hshrink = p.hshrink, vshrink = p.vshrink
     );
     
      _r.div = Widget() {return xml(_r, "div");};
@@ -345,6 +345,8 @@ public Widget h4(Widget p) = newWidget(p, exchange(p.process, "h4", [p.id], sep)
   
 public Widget div(Widget p) = newWidget(p, exchange(p.process, "div", [p.id], sep));
 
+public Widget div() = newWidget(scratch, exchange(scratch.process, "div", [scratch.id], sep));
+
 public Widget p(Widget p) = newWidget(p, exchange(p.process, "p", [p.id], sep));
 
 public Widget ul(Widget p) = newWidget(p, exchange(p.process, "ul", [p.id], sep));
@@ -357,7 +359,15 @@ public Widget span(Widget p) = newWidget(p, exchange(p.process, "span", [p.id], 
     
 public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth, str viewBox) {
     int hprocent  = round(hshrink*100);int vprocent  = round(vshrink*100);
-    if (!isEmpty(viewBox)) {
+    /*
+    if (p.isSvg) {
+       str result = exchange(p.process, "svg", [p.id], sep);
+       Widget r = newWidget(p, result);
+       r.isSvg = true;
+       return r;
+       }
+    */
+    if (p.isSvg && !isEmpty(viewBox)) {
         list[str] box = split(" ", viewBox);
         // println(box);
         int width = toInt(box[2]), height = toInt(box[3]);
@@ -365,16 +375,27 @@ public Widget svg(Widget p, num hshrink, num vshrink, num lineWidth, str viewBox
         }
     str result = exchange(p.process, "svg", [p.id], sep);
     Widget r = newWidget(p, result);
-    if (!isEmpty(viewBox)) r.attr("viewBox", viewBox);   
-    else r.attr("viewBox", "0 0 <hprocent> <vprocent>");
+    if (!isEmpty(viewBox)) {
+       r.attr("viewBox", viewBox); 
+       }  
+    else {
+      r.attr("viewBox", "0 0 100 100");
+      }
     r.isSvg = true;
-    r.attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
-    .attr("stroke-width","<round(lineWidth, 0.01)>");
+    // println("svg: <hprocent> <vprocent> <p.isSvg>");
+    if (p.isSvg) r.attr("width", "<hprocent>").attr("height","<vprocent>").attr("stroke-width","<round(lineWidth, 0.01)>");
+    else
+         r.attr("width", "<hprocent>%").attr("height","<vprocent>%").attr("preserveAspectRatio", "none")
+         .attr("stroke-width","<round(lineWidth, 0.01)>");
     r.border = lineWidth;
+    r.hshrink = hshrink;
+    r.vshrink = vshrink;
     return r;
     }
     
 public Widget svg(Widget p) = svg(p, 1, 1, 0, "");
+
+public Widget svg() = svg(scratch, 1, 1, 0, "");
     
 public Widget button(Widget p) {
     str result = exchange(p.process, "button", [p.id], sep);
@@ -480,7 +501,9 @@ public Widget marker(Widget p) = newWidget(p, exchange(p.process, "marker", [p.i
 public Widget removechilds(Widget p) = newWidget(p, exchange(p.process, "removechilds", [p.id], sep));
 
 public Widget createRoot(Widget p) = newWidget(p, exchange(p.process, "createRoot", [], sep));
-    
+
+public void attribute(str idx, str key, str val)  {attribute(idx, key, val);}
+
 public Widget attribute(Widget p, str key, str val) { 
     exchange(p.process, "attribute", [p.id, key, val], sep);
     //  WHY ????
@@ -687,7 +710,8 @@ public void window(Widget z, str html) {
          Widget html = fo.table().attr("width","100%").attr("height","100%").
          class("inner").tr().td().class("inner");
          exchange(html.process, "add", [html.id, inner.id],sep); 
-         exchange(html.process, "adjust", [p.id, "<round(p.border, 0.01)>", inner.id],sep); 
+         exchange(html.process, "adjust", [p.id, "<round(p.border, 0.01)>", 
+                 inner.id, "<round(inner.hshrink, 0.01)>","<round(inner.vshrink, 0.01)>"],sep); 
          setAlign(html,align);
         //  html.attr("height","100%"); // Problem. Must be 100%
          // newWidget(inner, inner.id); 
@@ -794,6 +818,7 @@ public Overlay overlay(list[Widget] ws, Align align = center)  = overlay(scratch
  Widget box(Widget w, num border, Widget ws..., str style="", num shrink=1, num vshrink=1, num hshrink=1, 
     Align align = center, str viewBox="") {
     if (vshrink==1 && hshrink==1) {vshrink = shrink; hshrink = shrink;}
+    // println("Box: <hshrink> <vshrink> <shrink> <w.isSvg>");
     Widget r = svg(w, hshrink, vshrink, border, viewBox);
     r.align = align;
     for (Widget q<-ws) {add(r, q, q.align);}
@@ -898,16 +923,21 @@ private list[Widget] lattice(int h, int v) {
 private str scX(num d, num x, num width) = "<100*round((d-x)/width, 0.001)>";
 
 private str scY(num d, num y, num height) = "<100-100*round((d-y)/height, 0.001)>";
-     
- private Widget reposition(Widget p, Graph d, tuple[num x , num y , num width, num height] v) {
+
+public str getString(Graph d , tuple[num x , num y , num width, num height] v){
      if (isEmpty(d.d)) return defaultWidget;
      tuple[num x, num y] h = head(d.d);
      str r = "M <scX(h.x,v.x, v.width)> <scY(h.y, v.y, v.height)>";
      d.d = tail(d.d);
      for (tuple[num x, num y] h <- d.d) {
-      // println("Q: <h.x> <h.y>, <v.x>, <v.y> <v.width> <v.height>");
-      r+=",L <scX(h.x,v.x, v.width)> <scY(h.y, v.y, v.height)>";
-      }
+       // println("Q: <h.x> <h.y>, <v.x>, <v.y> <v.width> <v.height>");
+       r+=",L <scX(h.x,v.x, v.width)> <scY(h.y, v.y, v.height)>";
+       }
+      return r;
+ }
+     
+ private Widget reposition(Widget p, Graph d, tuple[num x , num y , num width, num height] v) {
+     str r = getString(d, v);
      // println("QQQ: <r>");
      Widget w = path(p);  
      w.class(d.name).attr("d", r).attr("fill","none");
@@ -925,19 +955,19 @@ private str scY(num d, num y, num height) = "<100-100*round((d-y)/height, 0.001)
      num lw=1;
      addStylesheet("rect{fill:antiquewhite;}text{font-size:4px;text-anchor:middle;dominant-baseline:central}");
      Widget middle = box(lw
-               ,rect().style("width:<(100-lw)>%;height:<(100-lw)>%;fill:white;stroke-width:inhirit;stroke:darkmagenta")
+               ,rect().style("width:<(100-lw)>;height:<(100-lw)>;fill:white;stroke-width:inhirit;stroke:darkmagenta")
                  .x(lw/2).y(lw/2)
                ,shrink = 1.0);  
              middle.add(frame(lattice(size(hAxe)-1, size(vAxe)-1)+ws)
                    ,center)        
              ;
            ;
-     Widget left = frame([rect()]+vText(tail(vAxe)), vshrink = 0.8, hshrink = 0.1, align = leftCenter);
-     Widget bottom = frame([rect()]+hText(prefix(hAxe)), hshrink = 0.8, vshrink = 0.1, align = centerBottom);
-     Widget lBottom = frame([rect()]+[text(lowerLeftCorner).x(4).y(4)], hshrink = 0.1, vshrink = 0.1, align = leftBottom ); 
-     Widget rBottom = frame([rect()]+[text(last(hAxe)).x(0).y(4)], hshrink = 0.1, vshrink = 0.1, align = rightBottom);
-     Widget tLeft = frame([rect()]+[text(head(vAxe)).x(4).y(8)], hshrink = 0.1, vshrink = 0.1, align = leftTop); 
-      Overlay g = overlay([left, bottom, tLeft, lBottom, rBottom, frame(middle, shrink=0.8
+     Widget left = frame([rect()]+vText(tail(vAxe)), vshrink = 0.8, hshrink = 0.1, align = leftCenter, viewBox="0 0 10 80");
+     Widget bottom = frame([rect()]+hText(prefix(hAxe)), hshrink = 0.8, vshrink = 0.1, align = centerBottom, viewBox="0 0 80 10");
+     Widget lBottom = frame([rect()]+[text(lowerLeftCorner).x(4).y(4)], hshrink = 0.1, vshrink = 0.1, align = leftBottom, viewBox="0 0 10 10"); 
+     Widget rBottom = frame([rect()]+[text(last(hAxe)).x(0).y(4)], hshrink = 0.1, vshrink = 0.1, align = rightBottom, viewBox="0 0 10 10");
+     Widget tLeft = frame([rect()]+[text(head(vAxe)).x(4).y(8)], hshrink = 0.1, vshrink = 0.1, align = leftTop, viewBox="0 0 10 10"); 
+      Overlay g = overlay([left, bottom,tLeft, lBottom, rBottom, frame(middle, shrink=0.8
              , align = center, viewBox = "0 0 100 100")]+((extra==defaultWidget)?[]:[extra])); 
       return g;
       

@@ -39,13 +39,24 @@ void updateView(Model m, Msg msg, Widget cc, Widget ff) {
        }
     }
 
-Model update(Model m , Msg msg) {
+Model updateModel(Model m , Msg msg) {
   switch (msg) {
     case c(str new): {m = toReal_(new);}
     case f(str new): {m = toC(toReal_(new));}
   }
   return m;
 }
+
+void(Widget) updateChange() {
+      return void(Widget w) {
+         Msg msg;
+         if (w.id == cc.id) {msg = c(property(w, "value"));}
+         if (w.id == ff.id) {msg = f(property(w, "value"));}
+         // println("updateChange: <w.id> <cc.id> <msg>");
+         model=update(model, msg);
+         updateView(model, msg, cc ,ff); 
+         };
+      }
 
 public void main() {
    Model model = 37.0;
