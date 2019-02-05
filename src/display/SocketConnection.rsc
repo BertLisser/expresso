@@ -806,7 +806,7 @@ public Grid vcat(Widget p, int n, Align align = center) {
 public Grid vcat(int n, Align align = center) = vcat(scratch, n, align = align);
       
  public Overlay overlay(Widget p, list[Widget] ws, Align align = center) {
-      Widget r = p.div().class("overlay_panel");
+      Widget r = p.div().class("aap").div().class("overlay_panel");
       r.align = align;
       list[Widget] array = [];
       for (Widget w<-ws) {
@@ -971,7 +971,7 @@ public str getString(Graph d , tuple[num x , num y , num width, num height] v){
      Widget lBottom = frame([rect()]+[text(lowerLeftCorner).x(4).y(4)], hshrink = 0.1, vshrink = 0.1, align = leftBottom, viewBox="0 0 10 10"); 
      Widget rBottom = frame([rect()]+[text(last(hAxe)).x(0).y(4)], hshrink = 0.1, vshrink = 0.1, align = rightBottom, viewBox="0 0 10 10");
      Widget tLeft = frame([rect()]+[text(head(vAxe)).x(4).y(8)], hshrink = 0.1, vshrink = 0.1, align = leftTop, viewBox="0 0 10 10"); 
-      Overlay g = overlay([left, bottom,tLeft, lBottom, rBottom, frame(middle, shrink=0.8
+      Overlay g = overlay(p, [left, bottom,tLeft, lBottom, rBottom, frame(middle, shrink=0.8
              , align = center, viewBox = "0 0 100 100")]+((extra==defaultWidget)?[]:[extra])); 
       return g;
       

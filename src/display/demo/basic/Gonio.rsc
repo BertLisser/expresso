@@ -86,7 +86,7 @@ void buttons(Widget p, str func) {
    } 
  
 Graph f(str fname) {
-    num n = 64;
+    num n = 1024;
     num delta = 1.0/n;
     tuple[num shift, num amplitude, num frequency] t = m[fname];
     switch(fname) {
@@ -103,15 +103,17 @@ void gonio() {
     '.sin{stroke:blue}
     '.cos{stroke:red}
     '.input{type:range;max:0.25;min:0.25;step:0.01}
+    '.aap{position:static;width:400px;height:400px}
     "
     );
-    buttons(p, "sin");
-    buttons(p, "cos"); 
+    
     Graph d1 = f("sin");
     Graph d2 = f("cos");
     Overlay z = graph(p ,"-2/0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
                                 ["-1","0","1","2"], d1, d2, viewBox=<0, -2, 2*PI(), 4>);
-            
+                                
+    buttons(p, "sin");
+    buttons(p, "cos");                                   
     int f = 70;
     z.overlay.style("width:<f>%;height:<floor(4.0/(2*PI())*f)>%");  
     eventLoop(p, []);                              
