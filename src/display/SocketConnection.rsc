@@ -443,8 +443,9 @@ public Widget use(Widget p, Widget g) = newWidget(p, exchange(p.process, "use", 
 public Widget use(Widget g) = newWidget(scratch, exchange(scratch.process, "use", [scratch.id,g.id], sep));
 
 public Widget path(Widget p, Widget markerStart = defaultWidget, Widget markerMid = defaultWidget
-     , Widget markerEnd = defaultWidget ) {
-     Widget w = newWidget(p, exchange(p.process, "path", [p.id], sep));
+     , Widget markerEnd = defaultWidget, str id="") {
+     Widget w = isEmpty(id)?newWidget(p, exchange(p.process, "path", [p.id], sep))
+                           :newWidget(p, exchange(p.process, "pathId", [p.id, id], sep));
      str style = "";
      if (markerStart != defaultWidget) {
           style += "marker-start: url(#<markerStart.id>);";
@@ -502,7 +503,8 @@ public Widget removechilds(Widget p) = newWidget(p, exchange(p.process, "removec
 
 public Widget createRoot(Widget p) = newWidget(p, exchange(p.process, "createRoot", [], sep));
 
-public void attribute(str idx, str key, str val)  {attribute(idx, key, val);}
+public void attribute(Widget p, str idx, str key, str val)  {
+    exchange(p.process, "attribute", [idx, key, val], sep);}
 
 public Widget attribute(Widget p, str key, str val) { 
     exchange(p.process, "attribute", [p.id, key, val], sep);
@@ -672,6 +674,7 @@ public java void closeSocketConnection(int processId, bool force);
         for (tuple[set[tuple[Widget() w, str eventName]] key, void() f] ev <-  events) {
              if (procIn(t, ev.key)) ev.f();
              }
+        if (exchange(s.process, "pop" , [p.id], sep)!="pop") break;
         } 
      }  
  
@@ -687,6 +690,7 @@ public java void closeSocketConnection(int processId, bool force);
         for (tuple[set[tuple[str id, str eventName]] key, void() f] ev <-  events1) {
              if (t in ev.key) ev.f();
              }
+        if (exchange(s.process, "pop" , [], sep)!="pop") break;
         } 
      }
   
@@ -939,7 +943,7 @@ public str getString(Graph d , tuple[num x , num y , num width, num height] v){
  private Widget reposition(Widget p, Graph d, tuple[num x , num y , num width, num height] v) {
      str r = getString(d, v);
      // println("QQQ: <r>");
-     Widget w = path(p);  
+     Widget w = path(p, id=d.name);  
      w.class(d.name).attr("d", r).attr("fill","none");
      return w;
      }
