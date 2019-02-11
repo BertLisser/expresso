@@ -36,6 +36,7 @@ Bounds  bounds(BoundsC c, Margin a) = <c.cx-c.width*a.fx, c.cy-c.height*a.fy, c.
 
 map[int, lrel[set[tuple[str id , str eventName]], void()]] events = ();
 
+
 /*
 alias Widget = tuple[int process, str id, str eventName, str val
     ,value(str) class, value(str) style
@@ -91,7 +92,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
      
  alias Grid = tuple[Widget table, list[Widget] tr, list[list[Widget]] td];
  
- alias Overlay = tuple[Widget overlay, list[Widget] array];
+ alias Overlay = tuple[Widget overlay, list[Widget] array, map[str, Widget] ref];
  
  alias Graph = tuple[str name, str title, lrel[num x, num y] d];
       
@@ -102,9 +103,8 @@ alias Widget = tuple[int process, str id, str eventName, str val
 private Widget newWidget(Widget p,  str id, str eventName) {
     Widget _r =  widget(process=p.process, id=id, eventName=eventName, isSvg = p.isSvg
      , align = p.align, border = p.border, hshrink = p.hshrink, vshrink = p.vshrink
-    );
-    
-     _r.div = Widget() {return xml(_r, "div");};
+    ); 
+    _r.div = Widget() {return xml(_r, "div");};
     _r.span = Widget() {return xml(_r, "span");};
     _r.h1 = Widget() {return xml(_r, "h1");};
     _r.h2 = Widget() {return xml(_r, "h2");};
@@ -347,6 +347,10 @@ public Widget div(Widget p) = newWidget(p, exchange(p.process, "div", [p.id], se
 
 public Widget div() = newWidget(scratch, exchange(scratch.process, "div", [scratch.id], sep));
 
+public Widget div(Widget p, str t) = div(p).innerHTML(t);
+
+public Widget div(str t) = div(scratch).innerHTML(t);
+
 public Widget p(Widget p) = newWidget(p, exchange(p.process, "p", [p.id], sep));
 
 public Widget ul(Widget p) = newWidget(p, exchange(p.process, "ul", [p.id], sep));
@@ -403,6 +407,8 @@ public Widget button(Widget p) {
     return r;
     }
     
+public Widget button() = button(scratch);
+    
 public Widget addStylesheet(Widget p, str content) = newWidget(p, exchange(p.process, "addStylesheet", [p.id, content], sep)); 
 
 public Widget addStylesheet(str content) = newWidget(scratch, exchange(scratch.process, "addStylesheet", [scratch.id, content], sep)); 
@@ -412,6 +418,8 @@ public Widget setInterval(Widget p, int interval) = newWidget(p, exchange(p.proc
 public Widget clearInterval(Widget p) = newWidget(p, exchange(p.process, "clearInterval", [p.id], sep)); 
     
 public Widget input(Widget p) = newWidget(p, exchange(p.process, "input", [p.id], sep)); 
+
+public Widget input() = input(scratch);
     
 public Widget rect(Widget p) = newWidget(p, exchange(p.process, "rect", [p.id], sep));
 
@@ -502,9 +510,6 @@ public Widget marker(Widget p) = newWidget(p, exchange(p.process, "marker", [p.i
 public Widget removechilds(Widget p) = newWidget(p, exchange(p.process, "removechilds", [p.id], sep));
 
 public Widget createRoot(Widget p) = newWidget(p, exchange(p.process, "createRoot", [], sep));
-
-public void attribute(Widget p, str idx, str key, str val)  {
-    exchange(p.process, "attribute", [idx, key, val], sep);}
 
 public Widget attribute(Widget p, str key, str val) { 
     exchange(p.process, "attribute", [p.id, key, val], sep);
@@ -806,7 +811,7 @@ public Grid vcat(Widget p, int n, Align align = center) {
 public Grid vcat(int n, Align align = center) = vcat(scratch, n, align = align);
       
  public Overlay overlay(Widget p, list[Widget] ws, Align align = center) {
-      Widget r = p.div().class("aap").div().class("overlay_panel");
+      Widget r = p.div().class("overlay_top overlay_frame").div().class("overlay_panel");
       r.align = align;
       list[Widget] array = [];
       for (Widget w<-ws) {
@@ -814,7 +819,7 @@ public Grid vcat(int n, Align align = center) = vcat(scratch, n, align = align);
          add(div, w, w.align);
          array+=div;
          }
-      return <r, array>;
+      return <r, array, ()>;
       }
       
 public Overlay overlay(list[Widget] ws, Align align = center)  = overlay(scratch, ws, align = align);
@@ -943,7 +948,7 @@ public str getString(Graph d , tuple[num x , num y , num width, num height] v){
  private Widget reposition(Widget p, Graph d, tuple[num x , num y , num width, num height] v) {
      str r = getString(d, v);
      // println("QQQ: <r>");
-     Widget w = path(p, id=d.name);  
+     Widget w = path(p);  
      w.class(d.name).attr("d", r).attr("fill","none");
      return w;
      }
@@ -951,7 +956,10 @@ public str getString(Graph d , tuple[num x , num y , num width, num height] v){
  public Overlay graph(Widget p, str lowerLeftCorner, list[str] hAxe, list[str] vAxe, Graph d ...,
      Widget extra=defaultWidget, tuple[num x , num y , num width, num height] viewBox=<0, 0, 100, 100>) {
         list[Widget] r = [reposition(p, z, viewBox)|Graph z<-d];
-     return graphEnv(p, lowerLeftCorner, hAxe, reverse(vAxe), r);
+     Overlay result = graphEnv(p, lowerLeftCorner, hAxe, reverse(vAxe), r);
+     result.ref = (z[0].name:z[1]|z<-zip(d, r));
+     // println("graph: <result.ref>");
+     return result;
      }
     
  public Overlay graphEnv(Widget p, str lowerLeftCorner, list[str] hAxe, list[str] vAxe, Widget ws ..., 

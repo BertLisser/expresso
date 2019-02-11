@@ -16,7 +16,9 @@ alias Model = map[str, tuple[num shift, num amplitude, num frequency]];
                    
 Model m =  ("sin":<0,1,1>,"cos":<0,1,1>);
 
-Widget p = defaultWidget;
+Overlay plot;
+
+Widget root = defaultWidget;
 
 data Msg
   = shift(str idx, str func, str sh)
@@ -24,11 +26,11 @@ data Msg
   | frequency(str idx, str func, str fr)
   ;
   
-Msg(str) shift(str idx, str func) { return Msg(str s) { 
+Msg(str) shiftF(str idx, str func) { return Msg(str s) { 
          return shift(idx, func, s); };
          }
-Msg(str) amplitude(str idx, str func) = Msg(str s) { return amplitude(idx, func, s); }; 
-Msg(str) frequency(str idx, str func) = Msg(str s) { return frequency(idx, func, s); }; 
+Msg(str) amplitudeF(str idx, str func) = Msg(str s) { return amplitude(idx, func, s); }; 
+Msg(str) frequencyF(str idx, str func) = Msg(str s) { return frequency(idx, func, s); }; 
 
 num toReal_(str s) {
   try {
@@ -39,22 +41,23 @@ num toReal_(str s) {
 }
 
 void updateView(Msg msg) {
+    // println("updateView <msg>");
     switch (msg) {
        case shift(str idx, str func, _): 
-         attribute(p, idx, "d", getString(f(func), <0, -2, 2*PI(), 4>));
+        plot.ref[idx].attr("d", getString(f(func), <0, -2, 2*PI(), 4>));
        case amplitude(str idx, str func,_): 
-         attribute(p, idx, "d",  getString(f(func), <0, -2, 2*PI(), 4>));
+         plot.ref[idx].attr("d",  getString(f(func), <0, -2, 2*PI(), 4>));
        case frequency(str idx,str func, _): 
-         attribute(p, idx, "d",  getString(f(func), <0, -2, 2*PI(), 4>));
+          plot.ref[idx].attr("d",  getString(f(func), <0, -2, 2*PI(), 4>));
        }
     }
 
 
 void updateModel(Msg msg) {
   switch (msg) {
-    case shift(str id, str func, str sh): {m[func].shift = toReal_(sh);}
-    case amplitude(str id, str func, str am): {m[func].amplitude = toReal_(am);}
-    case frequency(str id, str func,str fr): {m[func].frequency = toReal_(fr);}
+    case shift(_, str func, str sh): {m[func].shift = toReal_(sh);}
+    case amplitude(_, str func, str am): {m[func].amplitude = toReal_(am);}
+    case frequency(_, str func,str fr): {m[func].frequency = toReal_(fr);}
   }
 }
 
@@ -62,27 +65,33 @@ void update(Msg msg) {
       updateModel(msg);
       updateView(msg); 
       }
+      
+Widget button(str title, str id, Msg(str)(str, str) func,  num val, num min, num max, num step) {
+     Widget qq = input().attr("value", "<round(val,0.0001)>")
+       .attr("type", "range").attr("min","<round(min,0.0001)>").attr("max","<round(max,0.0001)>")
+       .attr("step","<round(step,0.0001)>");
+    qq.eventf(change, func(id, id), update); 
+    Grid pp = hcat(div().class("buttons"),
+     [div("<id>:<title>")
+    ,div("<round(min)>")
+    ,qq
+    ,div("<round(max)>")
+    ]);
+    // list[Widget] ws = concat([wr|wr<-pp.td]);
+    // for (Widget w<-ws) w.attr("width","50px");
+    // Widget pp  = div(); 
+    // span(pp).style("display:inline-block;width:100px").;
+    return pp.table;
+    }
 
-void buttons(Widget p, str func) {     
-   {
-    Widget pp  = p.div(); 
-    span(pp).innerHTML("<func>:shift"); 
-    Widget qq = input(pp).attr("value", "<round(m[func].shift)>")
-       .attr("type", "range").attr("min","0").attr("max","4").attr("step", "0.01");
-    qq.eventf(change, shift(func, func), update); 
-    }
-    {
-    Widget pp  = p.div(); span(pp).innerHTML("<func>:amplitude"); 
-    Widget qq =input(pp).attr("value", "<round(m[func].amplitude)>")
-        .attr("type", "range").attr("min","0").attr("max","4").attr("step", "0.01");
-    qq.eventf(change, amplitude(func, func), update); 
-    }
-    {
-    Widget pp  = p.div(); span(pp).innerHTML("<func>:frequency"); 
-    Widget qq = input(pp).attr("value", "<round(m[func].frequency)>")
-        .attr("type", "range").attr("min","0").attr("max","4").attr("step", "0.01");
-    qq.eventf(change, frequency(func, func), update); 
-    }
+void buttons(Widget p, str func) { 
+    Grid pp = vcat(p,     
+    [ button("shift", func, shiftF, m[func].shift, 0, 4, 0.01),
+    button("frequency", func, frequencyF, m[func].frequency, 0, 4, 0.01),
+    button("amplitude", func, amplitudeF, m[func].amplitude, 0, 4, 0.01)
+    ]
+    );
+    pp.table.style("width:70%");
    } 
  
 Graph f(str fname) {
@@ -97,24 +106,25 @@ Graph f(str fname) {
 
 void gonio() {
     m =  ("sin":<0,1,1>,"cos":<0,1,1>);
-    p = createPanel();
+    root = createPanel();
     addStylesheet(
     "path{stroke-width:1}
     '.sin{stroke:blue}
     '.cos{stroke:red}
     '.input{type:range;max:0.25;min:0.25;step:0.01}
-    '.aap{position:static;width:400px;height:400px}
+    '.overlay_frame{width:400px;height:400px}
+    'td{border: 4px groove #999999;border-collapse:collapse;width:25%}
     "
     );
     
     Graph d1 = f("sin");
     Graph d2 = f("cos");
-    Overlay z = graph(p ,"-2/0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
+    plot = graph(root ,"-2/0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
                                 ["-1","0","1","2"], d1, d2, viewBox=<0, -2, 2*PI(), 4>);
                                 
-    buttons(p, "sin");
-    buttons(p, "cos");                                   
+    buttons(root, "sin");
+    buttons(root, "cos");                                   
     int f = 70;
-    z.overlay.style("width:<f>%;height:<floor(4.0/(2*PI())*f)>%");  
-    eventLoop(p, []);                              
+    plot.overlay.style("width:<f>%;height:<floor(4.0/(2*PI())*f)>%");  
+    eventLoop(root, []);                              
     }
