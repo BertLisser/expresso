@@ -179,6 +179,7 @@ public Widget stop(Widget p) = newWidget(p, exchange(p.process, "stop", [p.id], 
 private Widget(str, void(Widget)) event(Widget p) {
     return Widget(str eventName, void(Widget) val) {
          void() q = () {val(p);};
+         // println("DO event: <eventName> <q>");
          if (!(events[p.process]?)) events[p.process] = [];   
          events[p.process]+=<{<p.id, eventName>} , q>;
          Widget r = newWidget(p, p.id);
@@ -336,12 +337,16 @@ public Widget foreignObject(Widget p) {
      }
     
 public Widget h1(Widget p) = newWidget(p, exchange(p.process, "h1", [p.id], sep));
+public Widget h1(Widget p, str t) = h1(p).innerHTML(t);
 
 public Widget h2(Widget p) = newWidget(p, exchange(p.process, "h2", [p.id], sep));
+public Widget h2(Widget p, str t) = h2(p).innerHTML(t);
 
 public Widget h3(Widget p) = newWidget(p, exchange(p.process, "h3", [p.id], sep));
+public Widget h3(Widget p, str t) = h3(p).innerHTML(t);
 
 public Widget h4(Widget p) = newWidget(p, exchange(p.process, "h4", [p.id], sep));
+public Widget h4(Widget p, str t) = h4(p).innerHTML(t);
   
 public Widget div(Widget p) = newWidget(p, exchange(p.process, "div", [p.id], sep));
 
@@ -503,7 +508,7 @@ public Widget g() = g(scratch);
 
 public Widget defs(Widget p) = newWidget(p, exchange(p.process, "defs", [p.id], sep));
 
-public Widget defs() = newWidget(scratch, exchange(p.process, "defs", [p.id], sep));
+public Widget defs() = defs(scratch);
 
 public Widget marker(Widget p) = newWidget(p, exchange(p.process, "marker", [p.id], sep));
 
@@ -688,6 +693,7 @@ public java void closeSocketConnection(int processId, bool force);
         Widget s = waitForUser(z);
         if (s.process<0) continue;
         if (s.eventName=="exit") {println("exit"); return;}
+        // println("event: <events>");
         tuple[str, str] t = <s.id, s.eventName>;
         for (tuple[set[tuple[str id, str eventName]] key, void() f] ev <-  events[z.process]) {
              if (t in ev.key) ev.f();
@@ -695,7 +701,9 @@ public java void closeSocketConnection(int processId, bool force);
         for (tuple[set[tuple[str id, str eventName]] key, void() f] ev <-  events1) {
              if (t in ev.key) ev.f();
              }
-        if (exchange(s.process, "pop" , [], sep)!="pop") break;
+        str tst = exchange(s.process, "pop" , [], sep);
+        // println(tst);
+        if (tst!="pop") break;
         } 
      }
   
