@@ -739,6 +739,11 @@ public void window(Widget z, str html) {
     return p;
     }
     
+ public Widget add(Widget p, Widget inner) { 
+    exchange(p.process, "add", [p.id, inner.id],sep); 
+    return p;
+    }
+    
  public Widget add1(Widget p, Widget inner, Align align) { 
     add(p, inner, align);
     return inner;
@@ -838,7 +843,7 @@ public Overlay overlay(list[Widget] ws, Align align = center)  = overlay(scratch
     // println("Box: <hshrink> <vshrink> <shrink> <w.isSvg>");
     Widget r = svg(w, hshrink, vshrink, border, viewBox);
     r.align = align;
-    for (Widget q<-ws) {add(r, q, q.align);}
+    for (Widget q<-ws) {add(r, q);}
     return newWidget(r, r.id);
     }
  
