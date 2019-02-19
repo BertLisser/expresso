@@ -748,6 +748,14 @@ public void window(Widget z, str html) {
     add(p, inner, align);
     return inner;
     }
+    
+public Widget remove(Widget p, Widget inner) { 
+    exchange(p.process, "remove", [p.id, inner.id],sep); 
+    return p;
+    }
+    
+public Widget remove(Widget inner) = remove(scratch, inner);
+
       
 public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hshrink=1, Align align = center) {
       Widget r = p.table();
