@@ -209,6 +209,13 @@ private Widget(str, Msg(str), void(Msg)) eventf(Widget p) {
          return r;
          };
     }
+ 
+ private void events(str event, loc script) {  
+    // addScript('/private/tmp/script.html?aap=noot')">
+    loc dest = |tmp:///<script.file>|;
+    copyFile(script, dest);
+    exchange(p.process, "addScript", [p.id, event, dest.path, script.query], sep);
+    }
     
 public str addEventListener(Widget p, str event) = exchange(p.process, "addEventListener", [p.id, event], sep); 
 /*   
@@ -753,8 +760,15 @@ public Widget remove(Widget p, Widget inner) {
     exchange(p.process, "remove", [p.id, inner.id],sep); 
     return p;
     }
-    
+     
 public Widget remove(Widget inner) = remove(scratch, inner);
+
+public Widget replace(Widget p, Widget old, Widget new) { 
+    exchange(p.process, "replace", [p.id, old.id, new.id],sep); 
+    return p;
+    }
+    
+public Widget replace(Widget old, Widget new) = replace(scratch, old, new);
 
       
 public Grid hcat(Widget p, list[Widget] ws, num shrink=1, num vshrink=1, num hshrink=1, Align align = center) {
@@ -866,6 +880,11 @@ public Overlay overlay(list[Widget] ws, Align align = center)  = overlay(scratch
         return box(scratch, 0, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink
         , align = align, viewBox = viewBox);
     }
+    
+ Widget frame(Widget p, list[Widget] ws, str style="", num shrink=1, num vshrink=1, num hshrink=1,
+    Align align = center, str viewBox = "") = 
+     box(p, 0, ws,   style=style,  shrink=shrink, vshrink=vshrink, hshrink = hshrink
+        ,align = align, viewBox = viewBox);
      
   public Grid grid(Widget p, list[list[Widget]] ts
       , num shrink=1, num vshrink=1, num hshrink=1, str align = center) {

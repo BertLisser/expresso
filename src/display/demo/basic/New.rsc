@@ -164,15 +164,14 @@ list[Widget] lines() {
  
  void linedBox() {
      Widget p = createPanel();
-     Widget extra = frame(
+     Widget extra = 
             frame(
-                circle().style("fill:yellow;stroke-width:4;stroke:red").r(46).cx(50).cy(50), 
-                shrink=0.5, align = rightBottom ,viewBox="0 0 100 100"
-            ).add(text("Hallo").x(50).y(50)
-                 .style("text-anchor:middle;dominant-baseline:middle;font-size:20"), center
-                 )
-       ,shrink=0.5, viewBox="0 0 100 100", align=leftTop
-       );
+                circle().style("fill:yellow;stroke-width:4;stroke:red").r(46).cx(70).cy(50), 
+                text("Hallo").x(70).y(50)
+                 .style("text-anchor:middle;dominant-baseline:middle;font-size:20")     
+                ,shrink=0.5, align = center ,viewBox="0 0 140 100"
+            )
+       ;
      Overlay z = graphEnv(p ,"0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
                                  ["5","4","3","2","1"], lines(), extra = extra);
      z.overlay.style("width:70%;height:50%");

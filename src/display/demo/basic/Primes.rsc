@@ -4,7 +4,7 @@ import display::SocketConnection;
 import Prelude;
 import util::Math;
 
-alias Model = list[bool];
+alias Model = list[int];
 
 data Msg
   = press(str idx)
@@ -13,7 +13,7 @@ data Msg
   
 int n = 15;
 
-Model m =  [false|int k<-[0..n]];
+Model m =  [];
 
 Widget forRemove = defaultWidget;
   
@@ -21,30 +21,32 @@ Widget forRemove = defaultWidget;
     switch (msg) {
       case press(_): {
          for (int i<-[0..n]) 
-         if (m[i]) cells[i][1].attr("fill", "red");
+         if (m[i]==1) cells[i][1].attr("fill", "red");
+         else if (m[i]==2) cells[i][1].attr("fill", "brown");
          else cells[i][1].attr("fill", "lightgrey"); 
          }
       case refresh(str  s): {
-        remove(forRemove);
         n = toInt(s);
-        m =  [false|int _<-[0..n]];
+        m =  [0|int _<-[0..n]];
         cells = segments(n);
         str2int = (cells[k][1].id:k|k<-[0..n]);
-        forRemove = frame([cells[k][0]|int k<-[0..n]], viewBox="0 0 3 3")
+        Widget newFrame = frame([cells[k][0]|int k<-[0..n]], viewBox="0 0 3 3")
         .style("width:50%;height:50%");
+        replace(forRemove, newFrame);
+        forRemove = newFrame;
         }
     }
     }
 
  void updateModel(Msg msg) {
     // println("updateModel <msg>");
-    m =[false|_<-[0..n]];
+    m =[0|_<-[0..n]];
     switch (msg) {
      case press(str id): {
          int k = str2int[id];
          int p = k;
          for (int i<-[0..n]) {
-             m[p%n]=true;
+             m[p%n]=(p%n==k)?2:1;
              p*=k; 
              }  
          }      
@@ -88,8 +90,6 @@ tuple[Widget, Widget] segment(int n, int k) {
    Widget w2 = path().attr("d", pat2).attr("fill","lightgrey")
       .attr("stroke","black").attr("stroke-width","0.001px");
    tuple[num x, num y] c = <((r1+r2)/2)*cos(teta+phi/2), ((r1+r2)/2)*sin(teta+phi/2)>;
-    // Widget dot = circle().attr("cx","<rnd(c.x)>").attr("cy","<rnd(c.y)>")
-    // .attr("r","0.05");
      Widget dot = text("<k>").x(rnd(c.x)).y(rnd(c.y)).attr("font-size","0.5%")
       .style("text-anchor:middle;dominant-baseline:middle")
       ;
@@ -108,12 +108,14 @@ public void main() {
    Widget z=createPanel(); 
    addStylesheet("line{stroke-width:0.01; stroke:black}"
    );
+   forRemove = div();
+   updateView(refresh("<val>"));
    Widget tb  = z.table().style("width:90%");
    Widget qq = input(tb.tr().td()).attr("value", "<val>")
        .attr("type", "range").attr("min","<min>").attr("max","<max>")
        .attr("step","1").class("range").style("width:100%")
        ;
-      box(tb.tr().td(), 0, [
+      frame(tb.tr().td(),  [
       //line(<k, 0>, <k, 1>)|int k<-[min..max+1]
       text("<k>").x(k*0.97+0.5).y(0.6).attr("font-size","5%")
        .style("text-anchor:middle")
@@ -123,7 +125,5 @@ public void main() {
       style("height:<400/(max-min)>%;width:100%")
       ;
       qq.eventf(change, refresh, updateView);  
-   forRemove = div();
-   updateView(refresh("<val>"));
-   eventLoop(z, []);
+      eventLoop(z, []);
 }
