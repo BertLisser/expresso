@@ -2,6 +2,7 @@ module display::SocketConnection
 import Prelude;
 import util::Math;
 import lang::json::IO;
+import util::Resources;
 
 
 // Events
@@ -86,6 +87,7 @@ alias Widget = tuple[int process, str id, str eventName, str val
      ,Widget(num) r = widgetNum
      ,Widget(str) innerHTML =widgetStr
      ,Widget(str ,  void(value)) event  = widgetStrFun
+     ,Widget(str ,  loc) eventScript  = widgetStrLoc
      ,Widget(str , Msg , void(Msg)) eventm = widgetEvent1
      ,Widget(str , Msg(str) , void(Msg)) eventf = widgetEvent2
      );
@@ -137,6 +139,7 @@ private Widget newWidget(Widget p,  str id, str eventName) {
     _r.event = event(_r);
     _r.eventm = eventm(_r);
     _r.eventf = eventf(_r);
+    _r.eventScript = eventScript(_r);
     _r.add = add(_r);
     _r.add1 = add1(_r);
     return _r;
@@ -210,12 +213,24 @@ private Widget(str, Msg(str), void(Msg)) eventf(Widget p) {
          };
     }
  
- private void events(str event, loc script) {  
+ private Widget(str, loc) eventScript(Widget p) {
+     return Widget(str eventName, loc script) {  
     // addScript('/private/tmp/script.html?aap=noot')">
-    loc dest = |tmp:///<script.file>|;
-    copyFile(script, dest);
-    exchange(p.process, "addScript", [p.id, event, dest.path, script.query], sep);
+      loc file = location(|project://expresso|)+script.path;
+      // println("eventScript: <file>");
+      exchange(p.process, "addScriptEvent", [p.id, eventName, file.path, script.query], sep);
+      Widget r = newWidget(p, p.id);
+      return r;
+      };
     }
+    
+public Widget runScript(Widget p, loc script) {
+    loc file = location(|project://expresso|)+script.path;
+    exchange(p.process, "addScript", [p.id, file.path, script.query], sep);
+    return p;
+    }
+    
+public Widget runScript(loc script) = runScript(scratch, script);
     
 public str addEventListener(Widget p, str event) = exchange(p.process, "addEventListener", [p.id, event], sep); 
 /*   
@@ -301,6 +316,8 @@ Widget widgetWidgetAlign(Widget x, Align align) {return defaultWidget;}
 Widget widgetStrStr(str x, str y) {return defaultWidget;}
 
 Widget widgetStrFun(str x, void(value) y) {return defaultWidget;}
+
+Widget widgetStrLoc(str x, loc y) {return defaultWidget;}
 
 Widget widgetStrValVal(str x, value y, value z) {return defaultWidget;}
 

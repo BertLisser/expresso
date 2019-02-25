@@ -115,8 +115,8 @@ void gonio() {
     for (list[Widget] row <- pp.td) row[0].style("width:25%");
     pp.table.style("width:70%");
    } 
-    Widget color = input(root).attr("type","button").innerHTML("color");
-    color.events("click", |project://expresso/src/color.js?sinId=<plot.ref["sin"].id>|);
+    runScript(
+ |project://expresso/src/path.js?sinId=<plot.ref["sin"].id>;color=blue|);
     h2(root, "sin");                            
     buttons(root, "sin");
     h2(root, "cos");
