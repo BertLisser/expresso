@@ -214,11 +214,19 @@ private Widget(str, Msg(str), void(Msg)) eventf(Widget p) {
     }
  
  private Widget(str, loc) eventScript(Widget p) {
-     return Widget(str eventName, loc script) {  
+     return Widget(str eventName, loc scriptLoc) {  
     // addScript('/private/tmp/script.html?aap=noot')">
-      loc file = location(|project://expresso|)+script.path;
-      // println("eventScript: <file>");
-      exchange(p.process, "addScriptEvent", [p.id, eventName, file.path, script.query], sep);
+      loc file = location(|project://expresso|)+scriptLoc.path;
+      str script = readFile(file);
+      list[str] querys = split(";", scriptLoc.query);
+      // println(querys);
+      str content = "";
+      for  (str query <-querys) {
+          list[str] t =split("=", query);
+          content += "var <t[0]> = \"<t[1]>\";\n";
+          }
+      println(content+script);
+      exchange(p.process, "addScriptEvent", [p.id, eventName, content+script], sep);
       Widget r = newWidget(p, p.id);
       return r;
       };
@@ -230,7 +238,16 @@ public Widget runScript(Widget p, loc script) {
     return p;
     }
     
+public Widget runScript(Widget p, loc script, str query ...) {
+    loc file = location(|project://expresso|)+script.path;
+    str r = intercalate(";", query);
+    exchange(p.process, "addScript", [p.id, file.path, r], sep);
+    return p; 
+    }
+    
 public Widget runScript(loc script) = runScript(scratch, script);
+
+public Widget runScript(loc script, str query ...) = runScript(scratch, script, query);
     
 public str addEventListener(Widget p, str event) = exchange(p.process, "addEventListener", [p.id, event], sep); 
 /*   
@@ -986,39 +1003,61 @@ private list[Widget] lattice(int h, int v) {
      ;
      }
      
-private str scX(num d, num x, num width) = "<100*round((d-x)/width, 0.001)>";
-
-private str scY(num d, num y, num height) = "<100-100*round((d-y)/height, 0.001)>";
-
-public str getString(Graph d , tuple[num x , num y , num width, num height] v){
-     if (isEmpty(d.d)) return defaultWidget;
+public str getString(Graph d){
+     if (isEmpty(d.d)) return "";
      tuple[num x, num y] h = head(d.d);
-     str r = "M <scX(h.x,v.x, v.width)> <scY(h.y, v.y, v.height)>";
+     str r = "M <round(h.x,.0001)> <-round(h.y, .0001)>";
      d.d = tail(d.d);
      for (tuple[num x, num y] h <- d.d) {
        // println("Q: <h.x> <h.y>, <v.x>, <v.y> <v.width> <v.height>");
-       r+=",L <scX(h.x,v.x, v.width)> <scY(h.y, v.y, v.height)>";
+       r+=",L <round(h.x, .0001)> <-round(h.y, .0001)>";
        }
+     // println(r);
       return r;
  }
      
- private Widget reposition(Widget p, Graph d, tuple[num x , num y , num width, num height] v) {
-     str r = getString(d, v);
-     // println("QQQ: <r>");
-     Widget w = path(p);  
-     w.class(d.name).attr("d", r).attr("fill","none");
-     return w;
-     }
-     
  public Overlay graph(Widget p, str lowerLeftCorner, list[str] hAxe, list[str] vAxe, Graph d ...,
-     Widget extra=defaultWidget, tuple[num x , num y , num width, num height] viewBox=<0, 0, 100, 100>) {
-        list[Widget] r = [reposition(p, z, viewBox)|Graph z<-d];
-     Overlay result = graphEnv(p, lowerLeftCorner, hAxe, reverse(vAxe), r);
-     result.ref = (z[0].name:z[1]|z<-zip(d, r));
+     Widget extra=defaultWidget, tuple[num x , num y , num width, num height] view=<0, 0, 100, 100>) {
+     Overlay result = graphEnv(p, lowerLeftCorner, hAxe, reverse(vAxe), d,
+     viewBox="<round(view.x, 0.001)> <round(view.y, 0.001)> <round(view.width,0.001)> <round(view.height, 0.001)>");
+     // result.ref = (z[0].name:z[1]|z<-zip(d, r));
      // println("graph: <result.ref>");
      return result;
      }
-    
+   
+ public Overlay graphEnv(Widget p, str lowerLeftCorner, list[str] hAxe, list[str] vAxe, Graph gs ..., 
+     Widget extra=defaultWidget, str viewBox = "") {
+     num lw=1;
+     addStylesheet("rect{fill:antiquewhite;}text{font-size:4px;text-anchor:middle;dominant-baseline:central}");
+     ref = ();
+     list[Widget] ls = [];
+     for (Graph z<-gs) {
+         ref[z.name] = path().attr("d",getString(z)).attr("fill", "none")
+                             .class(z.name);
+         ls+=ref[z.name];
+         }
+     // println(viewBox);
+     Widget plotFrame = frame(ls, viewBox=viewBox); 
+     Widget middle = box(lw
+               ,rect().style("width:<(100-lw)>;height:<(100-lw)>;fill:white;stroke-width:inhirit;stroke:darkmagenta")
+                 .x(lw/2).y(lw/2)
+               ,shrink = 1.0);  
+             middle.add(frame(lattice(size(hAxe)-1, size(vAxe)-1)+
+                  plotFrame)
+                   ,center)        
+             ;
+           ;
+     Widget left = frame([rect()]+vText(tail(vAxe)), vshrink = 0.8, hshrink = 0.1, align = leftCenter, viewBox="0 0 10 80");
+     Widget bottom = frame([rect()]+hText(prefix(hAxe)), hshrink = 0.8, vshrink = 0.1, align = centerBottom, viewBox="0 0 80 10");
+     Widget lBottom = frame([rect()]+[text(lowerLeftCorner).x(4).y(4)], hshrink = 0.1, vshrink = 0.1, align = leftBottom, viewBox="0 0 10 10"); 
+     Widget rBottom = frame([rect()]+[text(last(hAxe)).x(0).y(4)], hshrink = 0.1, vshrink = 0.1, align = rightBottom, viewBox="0 0 10 10");
+     Widget tLeft = frame([rect()]+[text(head(vAxe)).x(4).y(8)], hshrink = 0.1, vshrink = 0.1, align = leftTop, viewBox="0 0 10 10"); 
+      Overlay g = overlay(p, [left, bottom,tLeft, lBottom, rBottom, frame(middle, shrink=0.8
+             , align = center, viewBox = "0 0 100 100")]+((extra==defaultWidget)?[]:[extra])); 
+      g.ref = ref;
+      return g;    
+ }
+ 
  public Overlay graphEnv(Widget p, str lowerLeftCorner, list[str] hAxe, list[str] vAxe, Widget ws ..., 
      Widget extra=defaultWidget) {
      num lw=1;
@@ -1041,3 +1080,4 @@ public str getString(Graph d , tuple[num x , num y , num width, num height] v){
       return g;
       
  }
+ 

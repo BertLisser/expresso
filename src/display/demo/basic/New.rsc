@@ -172,28 +172,10 @@ list[Widget] lines() {
                 ,shrink=0.5, align = center ,viewBox="0 0 140 100"
             )
        ;
-     Overlay z = graphEnv(p ,"0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
+     Overlay z = graphEnv(p, "0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
                                  ["5","4","3","2","1"], lines(), extra = extra);
      z.overlay.style("width:70%;height:50%");
      }
-     
- void gonio() {
-    Widget p = createPanel();
-    addStylesheet(
-    "path{stroke-width:1}
-    '.sin{stroke:blue}
-    '.cos{stroke:red}
-    "
-    );
-    num n = 64;
-    num delta = 1.0/n;
-    Graph d1 = <"sin","", [<x, sin(x)>|num x<-[0, 2*PI()/n..2*PI()+delta]]>;
-    Graph d2 = <"cos","",[<x, cos(x)>|num x<-[0, 2*PI()/n..2*PI()+delta]]>;
-    Overlay z = graph(p ,"0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
-                                 ["-2","-1","0","1","2"], d1, d2, viewBox=<0, -2, 2*PI(), 4>);
-    int f = 70;
-    z.overlay.style("width:<f>%;height:<floor(4.0/(2*PI())*f)>%");                               
-    }
    
      
  public void sets() {

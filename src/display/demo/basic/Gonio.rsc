@@ -38,10 +38,10 @@ void gonio() {
     Model m =  ("sin":<0,1,1>,"cos":<0,1,1>);
     Widget root = createPanel();
     addStylesheet(
-    "path{stroke-width:1}
+    "path{stroke-width:0.02}
     '.sin{stroke:blue}
     '.cos{stroke:red}
-    '.sin-cos{stroke:brown}
+    '.sincos{stroke:brown}
     '.overlay_frame{width:400px;height:400px}
     '.range{width:70%}
     'td{border: 4px groove #999999;border-collapse:collapse;text-align:center}
@@ -61,27 +61,30 @@ void gonio() {
         }
     }
     
-    Graph d3(num n, num delta) = <"sin-cos", "", [<x, 
-                                    g(sin, x, m["sin"].shift, m["sin"].frequency, m["sin"].amplitude)
-                                   +g(cos, x, m["cos"].shift, m["cos"].frequency, m["cos"].amplitude)
-                                >|num x<-[0, 2*PI()/n..2*PI()+delta]]>;
+    //Graph d3(num n, num delta) = <"sincos", "", [<x, 
+    //                                g(sin, x, m["sin"].shift, m["sin"].frequency, m["sin"].amplitude)
+    //                               +g(cos, x, m["cos"].shift, m["cos"].frequency, m["cos"].amplitude)
+    //                            >|num x<-[0, 2*PI()/n..2*PI()+delta]]>;
     
-    Graph d1 = f("sin");
-    Graph d2 = f("cos");
+    Graph d1 = <"sin","", []>; // f("sin");
+    Graph d2 = <"cos","", []>; // f("cos");
+    Graph d3 = <"sincos","", []>; 
     Overlay plot = graph(root ,"-2/0", ["\u03C0/2","\u03C0","3\u03C0/2", "2\u03C0"],
-                                ["-1","0","1","2"], d1, d2, d3(1024, 1.0/1024.0) , viewBox=<0, -2, 2*PI(), 4>);
+                                ["-1","0","1","2"]
+                                 , d1, d2 , d3 //,d3(1024, 1.0/1024.0) 
+                                , v=<0, -2, 2*PI(), 4>);
                                  
     void updateView(Msg msg) {
     // println("updateView <msg>");
       switch (msg) {
        case shift(str idx, str func, _): 
-         plot.ref[idx].attr("d", getString(f(func), <0, -2, 2*PI(), 4>));
+         plot.ref[idx].attr("d", getString(f(func)));
        case amplitude(str idx, str func,_): 
-         plot.ref[idx].attr("d",  getString(f(func), <0, -2, 2*PI(), 4>));
+         plot.ref[idx].attr("d",  getString(f(func)));
        case frequency(str idx,str func, _): 
-         plot.ref[idx].attr("d",  getString(f(func), <0, -2, 2*PI(), 4>));
+         plot.ref[idx].attr("d",  getString(f(func)));
        }
-       plot.ref["sin-cos"].attr("d", getString(d3(1024, 1.0/1024.0) , <0, -2, 2*PI(), 4>));
+       plot.ref["sincos"].attr("d", getString(d3(1024, 1.0/1024.0)));
     }
 
    void updateModel(Msg msg) {
@@ -101,7 +104,8 @@ void gonio() {
       Widget qq = input().attr("value", "<round(val,0.0001)>")
        .attr("type", "range").attr("min","<round(min,0.0001)>").attr("max","<round(max,0.0001)>")
        .attr("step","<round(step,0.0001)>").class("range");
-      qq.eventf(change, func(id, id), update); 
+      // qq.eventf(change, func(id, id), update); 
+      qq.eventScript(change, |project://expresso/src/update.js?id=<qq.id>;name=<id>_<title>;func=<id>|);
       return  [div("<title>"),div("<round(min)>"),qq,div("<round(max)>")];
     }
 
@@ -115,13 +119,23 @@ void gonio() {
     for (list[Widget] row <- pp.td) row[0].style("width:25%");
     pp.table.style("width:70%");
    } 
-    runScript(
- |project://expresso/src/path.js?sinId=<plot.ref["sin"].id>;color=blue|);
     h2(root, "sin");                            
     buttons(root, "sin");
     h2(root, "cos");
     buttons(root, "cos");                                   
     int c = 70;
-    plot.overlay.style("width:<c>%;height:<floor(4.0/(2*PI())*c)>%");  
-    eventLoop(root, []);                              
+    plot.overlay.style("width:<c>%;height:<floor(4.0/(2*PI())*c)>%");
+         runScript(
+    |project://expresso/src/path.js|
+       ,"sin_id=<plot.ref["sin"].id>"
+       ,"cos_id=<plot.ref["cos"].id>"
+       ,"sincos_id=<plot.ref["sincos"].id>"
+       ,"sin_shift=<round(m["sin"].shift, 0.0001)>"
+       ,"cos_shift=<round(m["cos"].shift, 0.0001)>"
+       ,"sin_frequency=<round(m["sin"].frequency, 0.0001)>"
+       ,"cos_frequency=<round(m["cos"].frequency, 0.0001)>"
+       ,"sin_amplitude=<round(m["sin"].amplitude, 0.0001)>"
+       ,"cos_amplitude=<round(m["cos"].amplitude, 0.0001)>"
+      );   
+    // eventLoop(root, []);                           
     }
