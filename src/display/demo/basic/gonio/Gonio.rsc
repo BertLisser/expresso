@@ -59,7 +59,7 @@ void gonio() {
     buttons(root, "cos");                                   
     int c = 70;
     plot.overlay.style("width:<c>%;height:<floor(4.0/(2*PI())*c)>%");
-         runScript(
+         runScriptHead(
     |project://expresso/src/display/demo/basic/gonio/path.js|
        ,"sin_id=<plot.ref["sin"].id>"
        ,"cos_id=<plot.ref["cos"].id>"

@@ -232,22 +232,25 @@ private Widget(str, Msg(str), void(Msg)) eventf(Widget p) {
       };
     }
     
-public Widget runScript(Widget p, loc script) {
+private Widget runScript(Widget p, loc script, bool body, str query ...) {
     loc file = location(|project://expresso|)+script.path;
-    exchange(p.process, "addScript", [p.id, file.path, script.query], sep);
-    return p;
-    }
-    
-public Widget runScript(Widget p, loc script, str query ...) {
-    loc file = location(|project://expresso|)+script.path;
+    int nArgs = size(query);
+    query+="nArgs=<nArgs>";
     str r = intercalate(";", query);
-    exchange(p.process, "addScript", [p.id, file.path, r], sep);
+    exchange(p.process, "addScript", [p.id, file.path, r, body?"body":"head"], sep);
     return p; 
     }
     
-public Widget runScript(loc script) = runScript(scratch, script);
+public Widget runScriptBody(Widget p, loc script, str query ...) =
+    runScript(p, script, true, query);
+  
+public Widget runScriptHead(Widget p, loc script, str query ...) =
+    runScript(p, script, false, query); 
+    
 
-public Widget runScript(loc script, str query ...) = runScript(scratch, script, query);
+public Widget runScriptBody(loc script, str query ...) = runScriptBody(scratch, script, query);
+
+public Widget runScriptHead(loc script, str query ...) = runScriptHead(scratch, script, query);
     
 public str addEventListener(Widget p, str event) = exchange(p.process, "addEventListener", [p.id, event], sep); 
 /*   

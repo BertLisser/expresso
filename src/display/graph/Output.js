@@ -1,0 +1,3 @@
+cy.add([{ group: 'nodes', data: { id: '0'}},{ group: 'nodes', data: { id: '1'}},{ group: 'nodes', data: { id: '2'}},{ group: 'nodes', data: { id: '3'}},{ group: 'nodes', data: { id: '4'}},{ group: 'nodes', data: { id: '5'}},{ group: 'nodes', data: { id: '6'}},{group: 'edges', data: {id: '0_2', source:'0',target:'2'}},{group: 'edges', data: {id: '1_3', source:'1',target:'3'}},{group: 'edges', data: {id: '2_4', source:'2',target:'4'}},{group: 'edges', data: {id: '3_5', source:'3',target:'5'}},{group: 'edges', data: {id: '4_6', source:'4',target:'6'}},{group: 'edges', data: {id: '5_0', source:'5',target:'0'}},{group: 'edges', data: {id: '6_1', source:'6',target:'1'}}]);
+var layout=cy.layout({name:'circle'});
+layout.run();
