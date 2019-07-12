@@ -5,19 +5,28 @@ import util::HtmlDisplay;
 
 alias Position = tuple[int x, int y];
 
-data Ele(Position position= <-1, -1>)  = n(str id, NodeShape nodeShape = defaultNodeShape())
-         | e(str id, str source, str target, EdgeShape edgeShape = defaultEdgeShape())
+public data Ele(Position position= <-1, -1>)  = n_(str id, Style style = style())
+         | e_(str id, str source, str target, Style style = style())
          ;
          
-data Style = style(
-              NodeShape nodeShape =  ellipse(),
-              EdgeShape edgeShape = straight(),
+public data Style = style(
+              str backgroundColor="", num backgroundOpacity=-1,
+              str borderColor= "", int borderWidth=-1,
+              int padding=-1, int width=-1, str height = -1,
+              str lineColor="",
+              str lineFill= "",
+              str lineCap="",
+              int width = -1,
+              list[ArrowShape] arrowShape = [],
+              list[Label] label = [],
+              NodeShape shape =  ellipse(),
+              EdgeShape curveStyle = straight(),
               Label label =  label(""),
               Label sourceLabel = sourceLabel(""),
               Label targetLabel = targetLabel("")
               );
          
-data Cytoscape = cytoscape(
+public data Cytoscape = cytoscape(
   // str container = "",
   list[Ele] elements = [],
   list[tuple[str selector, Style style]] styles = [],
@@ -48,10 +57,7 @@ data Cytoscape = cytoscape(
   str pixelRatio = "auto"
   );  
          
-data NodeShape(str backgroundColor="", num backgroundOpacity=-1,
-               str borderColor= "", int borderWidth=-1,
-               int padding=-1, int width=-1, str height = -1,
-               Label label= defaultLabel())
+public data NodeShape
     =ellipse()
     |triangle()
     |rectangle()
@@ -72,13 +78,7 @@ data NodeShape(str backgroundColor="", num backgroundOpacity=-1,
     |defaultNodeShape()
     ;
     
- data EdgeShape(
-    str lineColor="",
-    str lineFill= "",
-    str lineCap="",
-    int width = -1,
-    list[ArrowShape] arrowShape = [],
-    list[Label] label = [])
+ public data EdgeShape
     = haystack()
     | straight()
     | bezier()
@@ -87,14 +87,14 @@ data NodeShape(str backgroundColor="", num backgroundOpacity=-1,
     | defaultEdgeShape()
     ;
      
- data Pos
+ public data Pos
     = source()
     | midSource()
     | target()
     | midTarget()
     ;
     
- data ArrowShape(bool arrowFill = true, Pos pos= target(), num arrowScale=1.0,
+ public data ArrowShape(bool arrowFill = true, Pos pos= target(), num arrowScale=1.0,
      str arrowColor = "grey")
     = triangle()
     | triangleTee()
@@ -110,7 +110,7 @@ data NodeShape(str backgroundColor="", num backgroundOpacity=-1,
     | defaultArrowShape()
     ;
     
-data Label(str labelColor="", str outlineColor="", str backgroundColor="", 
+public data Label(str labelColor="", str outlineColor="", str backgroundColor="", 
       int marginX=0, int marginY = 0)
     = label(str \value, str hAlign = "center", str vAlign="center")
     | sourceLabel(str \value, int offset = 0)
@@ -119,7 +119,7 @@ data Label(str labelColor="", str outlineColor="", str backgroundColor="",
     ;
     
     
-data Layout
+public data Layout
     =  concentric(str options)
         // str name = "concentric",
         //bool fit= true, // whether to fit the viewport to the graph
@@ -222,47 +222,39 @@ str addKeyValue(str key, int val) = val==-1?"":"\'<key>\':\'<val>\',";
 str addKeyValue(str key, bool val) = "\'<key>\':\'<val>\',";
 
 str addKeyNumValue(str key, num val) = val==-1?"":"\'<key>\':\'<val>\',";
-  
-str getNodeShape(NodeShape arg) {
-    str r = "";
-    if (defaultNodeShape():=arg) return r;
-    r+= addKeyValue("background-color", arg.backgroundColor);
-    r+= addKeyNumValue("background-opacity", arg.backgroundOpacity);
-    r+= addKeyValue("border-color", arg.borderColor);
-    r+= addKeyValue("border-width", arg.borderWidth);
-    r+= addKeyValue("padding", arg.padding);
-    r+= addKeyValue("width", arg.width);
-    r+= addKeyValue("height", arg.height);
-    r+= addKeyValue("shape", getName(arg));
-    return r;
-    }
     
- str getArrowShape(ArrowShape arg) {
+str getArrowShape(ArrowShape arg) {
     str r = "";
     if (defaultArrowShape():=arg) return r;
     Pos pos = arg.pos;
     r+= addKeyValue("<getName(pos)>-arrow-fill", arg.arrowFill);
     r+= addKeyValue("<getName(pos)>-arrow-color", arg.arrowColor);
-    r+= addKeyNumValue("<getName(pos)>-arrow-scale", arg.arrowScale);
+    r+= addKeyNumValue("arrow-scale", arg.arrowScale);
     r+= addKeyValue("<getName(pos)>-arrow-shape", getName(arg));
     return r;
     }
  
 str getLabel(Label arg) {  
     str r = "";
-    if (defaultLabel():=arg) return r;
     switch(arg) {
        case label(str \value): { 
+            if (isEmpty(\value)) return "";
             r+=addKeyValue("label", \value);
-            r+=addKeyValue("h-align", arg.hAlign);
-            r+=addKeyValue("v-align", arg.vAlign);
+            if ((arg.hAlign?))
+               r+=addKeyValue("text-halign", arg.hAlign);
+            if ((arg.vAlign?))
+               r+=addKeyValue("text-valign", arg.vAlign);
             }
        case sourceLabel(str \value): {
+            if (isEmpty(\value)) return "";
             r+=addKeyValue("source-label", \value);
+            if ((arg.offset?))
             r+=addKeyValue("offset", arg.offset);
             }
        case targetLabel(str \value): {
+            if (isEmpty(\value)) return "";
             r+=addKeyValue("target-label", \value);
+             if ((arg.offset?))
             r+=addKeyValue("offset", arg.offset);
             }
          }
@@ -278,50 +270,64 @@ str getLabel(Label arg) {
 str getEdgeShape(EdgeShape arg){
     str r = "";
     if (defaultEdgeShape():=arg) return r;
-    r+= addKeyValue("line-color", arg.lineColor);
-    r+= addKeyValue("line-fill", arg.lineFill);
-    r+= addKeyValue("line-cap", arg.lineCap);
-    r+= addKeyValue("line-fill", arg.lineFill);
-    for (ArrowShape arrowShape<-arg.arrowShape)
-       r+= getArrowShape(arrowShape);
-    r+= addKeyValue("curve-style", getName(arg));
+    
     return r;
     }
-
-str getNodeStyle(str selector, NodeShape content) {
-    str s = getNodeShape(content);
-    if (isEmpty(s)) return "";
-    return 
-    "{selector:\'node<selector>\', style: {
-        '<s>
+    
+str getName1(NodeShape arg) {
+    str s = getName(arg);
+    switch(s) {
+        case "roundRectangle": return "round-rectangle";
+        case "bottomRoundRectangle": return "bottom-round-rectangle";
+        case "cutRectangle": return "cut-rectangle";
+        case "concaveHaxagon": return "concave-hexagon";
         }
-     }
-    ";
-}
-
-str getEdgeStyle(str selector, EdgeShape content) {
-    str s = getEdgeShape(content);
-    if (isEmpty(s)) return "";
-    return 
-    "{selector:\'edge<selector>\', style: {
-        '<s>
-        }
-     }
-    ";
-}
+    return s;
+    }
  
-str getStyle(str selector, Style style) {
+str getStyle(str selector, Style arg) {
     r="";
-    r+=getNodeStyle(selector, style.nodeShape);
-    r+=",";
-    r+=getEdgeStyle(selector, style.edgeShape);
-    return r;
+    if ((arg.backgroundColor?))
+    r+= addKeyValue("background-color", arg.backgroundColor);
+    if ((arg.backgroundOpacity?))
+    r+= addKeyNumValue("background-opacity", arg.backgroundOpacity);
+    if ((arg.borderColor?))
+    r+= addKeyValue("border-color", arg.borderColor);
+    if ((arg.borderWidth?))
+    r+= addKeyValue("border-width", arg.borderWidth);
+    if ((arg.padding?))
+    r+= addKeyValue("padding", arg.padding);
+    if ((arg.width?))
+    r+= addKeyValue("width", arg.width);
+    if ((arg.height?))
+    r+= addKeyValue("height", arg.height);
+    if ((arg.shape?))
+    r+= addKeyValue("shape", getName1(arg.shape));
+    if ((arg.lineColor?))
+    r+= addKeyValue("line-color", arg.lineColor);
+    if ((arg.lineFill?))
+    r+= addKeyValue("line-fill", arg.lineFill);
+    if ((arg.lineCap?))
+    r+= addKeyValue("line-cap", arg.lineCap);
+    if ((arg.arrowShape?))
+    for (ArrowShape arrowShape<-arg.arrowShape)
+       r+= getArrowShape(arrowShape);
+    if ((arg.curveStyle?))
+    r+= addKeyValue("curve-style", getName(arg.curveStyle));
+    r+=getLabel(arg.label);
+    // r+=getEdgeStyle(selector, style.edgeShape);
+    return isEmpty(r)?"":"{selector:\'<selector>\', style: {
+        '<r>
+        }
+     }
+    "
+          ;
     }
     
 str getElStyle(Ele ele) {
     switch(ele) {
-       case v:n(str id): return getNodeStyle("#<id>", v.nodeShape);
-       case v:e(str id, str source, str target): return getEdgeStyle("#<id>", v.edgeShape);
+       case v:n_(str id): return getStyle("node#<id>", v.style);
+       case v:e_(str id, str source, str target): return getStyle("edge#<id>", v.style);
        }
     }
 
@@ -355,8 +361,8 @@ str getEdgeElement(str id, str source, str target) =
 str getElement(Ele ele) {
     str r = "{ group:";
     switch(ele) {
-       case v:n(str id): r+=getNodeElement(id);
-       case v:e(str id, str source, str target): r+=getEdgeElement(id, source, target);
+       case v:n_(str id): r+=getNodeElement(id);
+       case v:e_(str id, str source, str target): r+=getEdgeElement(id, source, target);
        }
     if (ele.position?) 
        r+=",position: {x: <ele.position.x>, y:<ele.position.y>}";
@@ -383,7 +389,7 @@ public str genScript(str container, Cytoscape cy) {
   str r =  
   "var cy = cytoscape({
   'container: document.getElementById(\'<container>\'), 
-  'style: [<getStyles(cy.styles)+getElStyles(cy.elements)>],
+  'style: [<getStyles(cy.styles)+","+getElStyles(cy.elements)>],
   'elements: [<getElements(cy.elements)>]
   '
   '});
@@ -392,6 +398,8 @@ public str genScript(str container, Cytoscape cy) {
   ;
   return r;
   }
+  
+// private bool isUppercase(str s) 
  
   /*
   style: [ // the stylesheet for the graph
